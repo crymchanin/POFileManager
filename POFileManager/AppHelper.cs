@@ -247,7 +247,7 @@ namespace POFileManager {
                 Log.ExceptionThrownEvent += (e) => MessageBox.Show(e.ToString(), "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 // Если не админ, то в журналы писать не сможем в связи с отсутствием прав
-                if (!IsAdministrator()) {
+                if (IsAdministrator()) {
                     // Инициализация класса для взаимодействия с журналами Windows
                     MainEventLog = new EventLog();
                     MainEventLog.BeginInit();
