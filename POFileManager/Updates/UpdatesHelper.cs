@@ -11,10 +11,12 @@ namespace POFileManager.Updates {
         /// <summary>
         /// Проверяет наличие обновлений на сервере
         /// </summary>
+        /// <param name="updatesServ">Сервер обновлений</param>
         /// <param name="curVerStr">Текущая версия программы</param>
+        /// <param name="productName">Имя продукта</param>
         /// <returns></returns>
-        public static bool CheckUpdates(string updatesServ, string curVerStr) {
-            string url = updatesServ + "?method=getVersion&appName=" + Program.ProductName;
+        public static bool CheckUpdates(string updatesServ, string curVerStr, string productName) {
+            string url = updatesServ + "?method=getVersion&appName=" + productName;
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
             using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse()) {
                 using (StreamReader stream = new StreamReader(resp.GetResponseStream())) {

@@ -65,7 +65,7 @@ namespace POFileManager {
                 // - Проверка подключения к сети интернет
             }
             catch (Exception ex) {
-                AppHelper.CreateMessage("Ошибка:\r\n" + ex.ToString(), MessageType.Error, true, true);
+                AppHelper.CreateMessage("Ошибка:\r\n" + ex.ToString(), MessageType.Error, true, true, true);
                 Load += (s, e) => Application.Exit();
                 return false;
             }
@@ -75,16 +75,19 @@ namespace POFileManager {
         public MainForm() {
             InitializeComponent();
 
+            AppHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Information, false, false, true);
             if (!AppHelper.InitConfiguration()) {
                 Load += (s, e) => Application.Exit();
                 return;
             }
 
+            AppHelper.CreateMessage("Проверка обновлений...", MessageType.Information, false, false, true);
             if (AppHelper.CheckUpdates()) {
                 Load += (s, e) => Application.Exit();
                 return;
             }
 
+            AppHelper.CreateMessage("Инициализация основных параметров...", MessageType.Information, false, false, true);
             GUIController.Init(this);
             if (!AppHelper.InitEngine()) {
                 Load += (s, e) => Application.Exit();
@@ -93,8 +96,10 @@ namespace POFileManager {
             AppHelper.MainTimer.Tick += delegate(object s, EventArgs e) {
                 TasksHelper.RunTasksThread();
             };
+            AppHelper.CreateMessage("Запуск планировщика...", MessageType.Information, false, false, true);
             AppHelper.MainTimer.Start();
 
+            AppHelper.CreateMessage("Инициализация проверки связи...", MessageType.Information, false, false, true);
             if (!InitPinger()) {
                 return;
             }
@@ -110,7 +115,7 @@ namespace POFileManager {
                 Hide();
             }
             catch (Exception ex) {
-                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, false);
+                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, false, true);
             }
         }
 
@@ -130,7 +135,7 @@ namespace POFileManager {
                 }
             }
             catch (Exception ex) {
-                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, false);
+                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, false, true);
             }
         }
 

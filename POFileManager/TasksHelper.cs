@@ -33,7 +33,7 @@ namespace POFileManager {
                 SQLHelper.ExecuteSqlScripts();
             }
             catch (Exception ex) { // При ошибке продолжаем работу метода
-                AppHelper.CreateMessage("Ошибка во время выполнения SQL скрипта: " + ex.ToString(), MessageType.Error, false, true);
+                AppHelper.CreateMessage("Ошибка во время выполнения SQL скрипта: " + ex.ToString(), MessageType.Error, false, true, true);
             }
 
             try {
@@ -188,13 +188,13 @@ namespace POFileManager {
                                             if (condition.HasError) {
                                                 error = condition.ErrorString;
                                             }
-                                            AppHelper.CreateMessage("Ошибка при проверке файла '" + task.Source + "':\r\n" + error, MessageType.Error, false, true);
+                                            AppHelper.CreateMessage("Ошибка при проверке файла '" + task.Source + "':\r\n" + error, MessageType.Error, false, true, true);
                                             continue;
                                         }
                                     }
                                 }
                                 catch (Exception ex) {
-                                    AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, true);
+                                    AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, true, true);
                                     continue;
                                 }
 
@@ -212,14 +212,14 @@ namespace POFileManager {
                                 }
                             }
                             catch (Exception ex) {
-                                AppHelper.CreateMessage("Ошибка при перемещении файла '" + task.Source + "' -> '" + newPath + "'.\r\n" + ex.ToString(), MessageType.Error, false, true);
+                                AppHelper.CreateMessage("Ошибка при перемещении файла '" + task.Source + "' -> '" + newPath + "'.\r\n" + ex.ToString(), MessageType.Error, false, true, true);
                                 continue;
                             }
                         }
                     }
 
                     if (log.Length > 0) {
-                        AppHelper.CreateMessage(log.ToString(), MessageType.Error, false, true);
+                        AppHelper.CreateMessage(log.ToString(), MessageType.Error, false, true, true);
                     }
                 }
 
@@ -236,13 +236,13 @@ namespace POFileManager {
                                 SQLHelper.WriteFileOperationInfo(fInfos);
                             }
                             if (uploadEx != null) {
-                                AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + uploadEx.ToString(), MessageType.Error, false, true);
+                                AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + uploadEx.ToString(), MessageType.Error, false, true, true);
                             }
                         }
                     }
                 }
                 catch (Exception ex) {
-                    AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + ex.ToString(), MessageType.Error, false, true);
+                    AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + ex.ToString(), MessageType.Error, false, true, true);
                 }
 
                 // Запаковываем файлы в архив
@@ -251,7 +251,7 @@ namespace POFileManager {
                 if (fInfos != null) {
                     foreach (FileOperationInfo fInfo in fInfos) {
                         AppHelper.CreateMessage(string.Format("Упакован файл {0} из задачи {1} в {2}", fInfo.FileName, fInfo.TaskName, fInfo.OperationDate),
-                            MessageType.Information, false, false);
+                            MessageType.Information);
                     }
                     // Закачиваем архив на ftp
                     bool flag = FtpHelper.UploadArchive(zipName, AppHelper.Configuration.ZipCode, out uploadEx);
@@ -264,7 +264,7 @@ namespace POFileManager {
                 }
             }
             catch (Exception ex) {
-                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, true);
+                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, true, true);
             }
             finally {
                 AppHelper.IsRunning = false;
@@ -286,7 +286,7 @@ namespace POFileManager {
                 thread.Start();
             }
             catch (Exception ex) {
-                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, true);
+                AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, true, true);
             }
         }
     }

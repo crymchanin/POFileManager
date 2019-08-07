@@ -26,6 +26,26 @@ namespace POFileManager {
 
         #region Члены и свойства класса
         /// <summary>
+        /// Аргументы программы
+        /// </summary>
+        public static string[] ARGS { get; set; }
+
+        /// <summary>
+        /// Текущая рабочая папка
+        /// </summary>
+        public static string CurrentDirectory { get; set; }
+
+        /// <summary>
+        /// Имя данного продукта
+        /// </summary>
+        public static string ProductName { get; set; }
+
+        /// <summary>
+        /// Версия данного приложения
+        /// </summary>
+        public static string Version { get; set; }
+
+        /// <summary>
         /// GUID приложения
         /// </summary>
         public static string GUID { get; set; }
@@ -84,6 +104,11 @@ namespace POFileManager {
         /// Минимальный интервал основного таймера
         /// </summary>
         private const int MinimumMainTimerInterval = 30000;
+
+        /// <summary>
+        /// Класс для заимодействия с жураналами Windows
+        /// </summary>
+        private static EventLog MainEventLog { get; set; }
         #endregion
 
         #region Вспомогательные методы
@@ -94,7 +119,8 @@ namespace POFileManager {
         /// <param name="messageType">Тип сообщения</param>
         /// <param name="showMessageBox">Отображает окно сообщения если установлено в true</param>
         /// <param name="sendMail">Отправляет сообщение по почте</param>
-        public static void CreateMessage(string message, MessageType messageType, bool showMessageBox = false, bool sendMail = false) {
+        /// <param name="writeToEventLog">Записывает сообщение в журналы Windows</param>
+        public static void CreateMessage(string message, MessageType messageType, bool showMessageBox = false, bool sendMail = false, bool writeToEventLog = false) {
             if (messageType == MessageType.Debug) {
                 if (Configuration != null) {
                     if (!Configuration.DebuggingEnabled) {
@@ -104,15 +130,39 @@ namespace POFileManager {
             }
             Log.Write(message, messageType);
 
+            // Записывает заданный текст в журналы Windows если true
+            if (writeToEventLog) {
+                EventLogEntryType eventLogEntryType;
+                switch (messageType) {
+                    case MessageType.Error:
+                        eventLogEntryType = EventLogEntryType.Error;
+                        break;
+                    case MessageType.Warning:
+                        eventLogEntryType = EventLogEntryType.Warning;
+                        break;
+                    case MessageType.Debug:
+                    case MessageType.Information:
+                    case MessageType.None:
+                    default:
+                        eventLogEntryType = EventLogEntryType.Information;
+                        break;
+                }
+                WriteToWindowsJournal(message, eventLogEntryType);
+            }
+
+            // Отправляет заданный текст на почту если true
             if (sendMail) {
                 try {
-                    MailHelper.SendMail("Обмен файлами с отделением " + Configuration.ZipCode.ToString(), message);
+                    MailHelper.SendMail(string.Format("Обмен файлами с отделением {0} PC: {1}", Configuration.ZipCode, Environment.MachineName), message);
                 }
                 catch (Exception ex) {
-                    Log.Write("Ошибка при отправке сообщения на электронную почту:\r\n" + ex.ToString(), MessageType.Error);
+                    string msg = "Ошибка при отправке сообщения на электронную почту:\r\n" + ex.ToString();
+                    Log.Write(msg, MessageType.Error);
+                    WriteToWindowsJournal(msg, EventLogEntryType.Error);
                 }
             }
 
+            // Отображает окно сообщения с заданным текстом если true
             if (showMessageBox) {
                 MessageBoxIcon msgBoxIcon;
                 string msgBoxTitle;
@@ -144,6 +194,15 @@ namespace POFileManager {
         }
 
         /// <summary>
+        /// Вносит в журнал событий следующие записи с заданным текстом сообщения: ошибка, предупреждение, сведения, аудит отказов или аудит успехов
+        /// </summary>
+        /// <param name="message">Строка для записи в журнал событий</param>
+        /// <param name="logEntryType">Одно из значений System.Diagnostics.EventLogEntryType</param>
+        public static void WriteToWindowsJournal(string message, EventLogEntryType logEntryType = EventLogEntryType.Information) {
+            MainEventLog.WriteEntry(message, logEntryType);
+        }
+
+        /// <summary>
         /// Проверяет наличие установленного сертификата для электронной почты в системе
         /// </summary>
         /// <returns></returns>
@@ -169,28 +228,64 @@ namespace POFileManager {
         }
         #endregion
 
+
+        /// <summary>
+        /// Предварительная инициализация программы
+        /// </summary>
+        /// <returns></returns>
+        public static bool PreInit() {
+            try {
+                Assembly execAssembly = Assembly.GetExecutingAssembly();
+                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(execAssembly.Location);
+                ProductName = fileVersionInfo.ProductName;
+                CurrentDirectory = IOHelper.GetCurrentDir(execAssembly);
+                Version = fileVersionInfo.FileVersion;
+
+                ARGS = Environment.GetCommandLineArgs();
+
+                Log = new Log(Path.Combine(CurrentDirectory, ProductName + ".log")) { InsertDate = true, AutoCompress = true };
+                Log.ExceptionThrownEvent += (e) => MessageBox.Show(e.ToString(), "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Если не админ, то в журналы писать не сможем в связи с отсутствием прав
+                if (!IsAdministrator()) {
+                    // Инициализация класса для взаимодействия с журналами Windows
+                    MainEventLog = new EventLog();
+                    MainEventLog.BeginInit();
+                    MainEventLog.Log = "Application";
+                    MainEventLog.Source = ProductName;
+                    MainEventLog.EndInit();
+                }
+
+                return true;
+            }
+            catch (Exception ex) {
+                MessageBox.Show("Программе обмена не удается выполнить запуск. Обратитесь в ГИТ. Текст ошибки:\r\n" + ex.ToString(), "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
         /// <summary>
         /// Инициализация конфигурации приложения
         /// </summary>
         /// <returns></returns>
         public static bool InitConfiguration() {
             try {
-                string confPath = Path.Combine(Program.CurrentDirectory, "settings.conf");
+                string confPath = Path.Combine(CurrentDirectory, "settings.conf");
                 if (!File.Exists(confPath)) {
                     File.WriteAllBytes(confPath, Properties.Resources.settings);
-                    CreateMessage("Файл конфигурации приложения не был обнаружен. Создан файл конфигурации с параметрами по умолчанию.", MessageType.Warning, true, false);
+                    CreateMessage("Файл конфигурации приложения не был обнаружен. Создан файл конфигурации с параметрами по умолчанию.", MessageType.Warning, true, false, true);
                 }
                 ConfHelper = new ConfHelper(confPath);
                 Configuration = ConfHelper.LoadConfig<Global>();
                 if (!ConfHelper.Success) {
-                    CreateMessage("Ошибка при загрузке конфигурации:\r\n" + ConfHelper.LastError.ToString(), MessageType.Error, true, false);
+                    CreateMessage("Ошибка при загрузке конфигурации:\r\n" + ConfHelper.LastError.ToString(), MessageType.Error, true, false, true);
                     return false;
                 }
 
                 return true;
             }
             catch (Exception ex) {
-                CreateMessage("Ошибка при загрузке конфигурации:\r\n" + ex.ToString(), MessageType.Error, true, false);
+                CreateMessage("Ошибка при загрузке конфигурации:\r\n" + ex.ToString(), MessageType.Error, true, false, true);
                 return false;
             }
         }
@@ -202,13 +297,13 @@ namespace POFileManager {
         public static bool InitEngine() {
             try {
                 // Установка модуля обновления при его отсутствии
-                string updaterPath = Path.Combine(Program.CurrentDirectory, "Updater.exe");
+                string updaterPath = Path.Combine(CurrentDirectory, "Updater.exe");
                 if (!File.Exists(updaterPath)) {
                     File.WriteAllBytes(updaterPath, Properties.Resources.Updater);
                 }
 
                 if (!CheckCertificateExists(Configuration.Mail.CertificateName)) {
-                    CreateMessage("Сертификат почтового сервера не установлен. Необходимо выполнить установку сертификата и повторно запустить программу", MessageType.Error, true, false);
+                    CreateMessage("Сертификат почтового сервера не установлен. Необходимо выполнить установку сертификата и повторно запустить программу", MessageType.Error, true, false, true);
                     return false;
                 }
 
@@ -228,19 +323,14 @@ namespace POFileManager {
 
                 // Инициализация параметров SQL
                 if (!IOHelper.IsFullPath(Configuration.Sql.Database)) {
-                    AppHelper.Configuration.Sql.Database = Path.Combine(Program.CurrentDirectory, Configuration.Sql.Database);
+                    Configuration.Sql.Database = Path.Combine(CurrentDirectory, Configuration.Sql.Database);
                 }
                 SQLHelper.ConnectionString = string.Format("User={0};Password={1};Database={2};DataSource={3};Pooling=false;Connection lifetime=60;Charset=WIN1251;",
                     Configuration.Sql.Username, Configuration.Sql.Password,
                     Configuration.Sql.Database, Configuration.Sql.DataSource);
 
-#if !DEBUG
-                // Добавление программы в автозагрузку
-                //Feodosiya.Lib.App.AppHelper.AddToAutorun(Program.ApplicationPath);
-#endif
-
                 // Проверка временных папок на их существование
-                TempPath = Path.Combine(Program.CurrentDirectory, "Temp");
+                TempPath = Path.Combine(CurrentDirectory, "Temp");
                 if (!Directory.Exists(TempPath)) {
                     Directory.CreateDirectory(TempPath);
                 }
@@ -257,16 +347,18 @@ namespace POFileManager {
                     Directory.CreateDirectory(TempSqlPath);
                 }
 
+                // Создаем сообщение об успешной установке обновления
                 if (UpdatesInstalled) {
-                    CreateMessage("Обновление успешно установлено", MessageType.Information, false, true);
+                    CreateMessage("Обновление успешно установлено", MessageType.Information, false, true, true);
                 }
 
                 // Проверка задач по обработке файлов
+                CreateMessage("Загрузка задач...", MessageType.Information, false, false, true);
                 StringBuilder errors = new StringBuilder();
                 foreach (Task task in Configuration.Tasks) {
                     task.Name = task.Name.ToUpper();
                     if (!string.IsNullOrWhiteSpace(task.ExternalLib)) {
-                        task.ExternalLibAsm = Assembly.LoadFile(Path.Combine(Program.CurrentDirectory, task.ExternalLib));
+                        task.ExternalLibAsm = Assembly.LoadFile(Path.Combine(CurrentDirectory, task.ExternalLib));
                     }
                     if (!task.AllowDuplicate) {
                         SQLHelper.CreateTableFingerprint(task.Name);
@@ -285,7 +377,7 @@ namespace POFileManager {
                     }
                 }
                 if (errors.Length > 0) {
-                    CreateMessage("Ошибка при инициализации задач:\r\n" + errors.ToString(), MessageType.Error, true, true);
+                    CreateMessage("Ошибка при инициализации задач:\r\n" + errors.ToString(), MessageType.Error, true, true, true);
                 }
 
                 // Проверка существования таблицы для хранения данных об обработанных файлах
@@ -296,7 +388,8 @@ namespace POFileManager {
                 MainTimer = new Timer();
                 MainTimer.Interval = Math.Max(MinimumMainTimerInterval, interval);
 
-                NamedPipeListener<string> namedPipeListener = new NamedPipeListener<string>(Program.ProductName);
+                CreateMessage("Инициализация и запуск именованного канала...", MessageType.Information, false, false, true);
+                NamedPipeListener<string> namedPipeListener = new NamedPipeListener<string>(ProductName);
                 namedPipeListener.MessageReceived += delegate (object sender, NamedPipeListenerMessageReceivedEventArgs<string> e) {
                     switch (e.Message) {
                         case "force":
@@ -307,14 +400,14 @@ namespace POFileManager {
                     }
                 };
                 namedPipeListener.Error += delegate (object sender, NamedPipeListenerErrorEventArgs e) {
-                    CreateMessage(string.Format("Ошибка Pipe: ({0}): {1}", e.ErrorType, e.Exception.Message), MessageType.Error, false, false);
+                    CreateMessage(string.Format("Ошибка Pipe: ({0}): {1}", e.ErrorType, e.Exception.Message), MessageType.Error, false, false, true);
                 };
                 namedPipeListener.Start();
 
                 return true;
             }
             catch (Exception ex) {
-                CreateMessage("Ошибка инициализации программы:\r\n" + ex.ToString(), MessageType.Error, true, true);
+                CreateMessage("Ошибка инициализации программы:\r\n" + ex.ToString(), MessageType.Error, true, true, true);
                 return false;
             }
         }
@@ -326,8 +419,8 @@ namespace POFileManager {
         public static bool CheckUpdates() {
             try {
                 try {
-                    if (Program.ARGS.Length > 0) {
-                        foreach (string arg in Program.ARGS) {
+                    if (ARGS.Length > 0) {
+                        foreach (string arg in ARGS) {
                             if (arg.ToLower() == "-u") {
                                 Process[] processes = Process.GetProcessesByName("Updater");
                                 if (processes.Length > 0) {
@@ -338,7 +431,7 @@ namespace POFileManager {
                                     }
                                 }
 
-                                string path = Path.Combine(Program.CurrentDirectory, "Updater.exe");
+                                string path = Path.Combine(CurrentDirectory, "Updater.exe");
                                 if (File.Exists(path)) {
                                     File.Delete(path);
                                 }
@@ -350,18 +443,18 @@ namespace POFileManager {
                     }
                 }
                 catch (Exception ex) {
-                    CreateMessage("Ошибка при установке обновлений: " + ex.ToString(), MessageType.Error, true, false);
+                    CreateMessage("Ошибка при установке обновлений: " + ex.ToString(), MessageType.Error, true, false, true);
                 }
 
-                if (UpdatesHelper.CheckUpdates(Configuration.Updates.ServerName, Program.Version)) {
-                    Process.Start(Path.Combine(Program.CurrentDirectory, "Updater.exe"), string.Format("{0} {1} {2}", Program.Version, Configuration.Updates.ServerName, Program.ProductName));
+                if (UpdatesHelper.CheckUpdates(Configuration.Updates.ServerName, Version, ProductName)) {
+                    Process.Start(Path.Combine(CurrentDirectory, "Updater.exe"), string.Format("{0} {1} {2}", Version, Configuration.Updates.ServerName, ProductName));
                     return true;
                 }
 
                 return false;
             }
             catch (Exception ex) {
-                CreateMessage("Ошибка при проверке обновлений: " + ex.ToString(), MessageType.Error, false, false);
+                CreateMessage("Ошибка при проверке обновлений: " + ex.ToString(), MessageType.Error, false, false, true);
                 return false;
             }
         }
