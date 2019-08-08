@@ -91,14 +91,29 @@ namespace POFileManager {
         public static string TempSqlPath { get; set; }
 
         /// <summary>
+        /// Основной таймер программы
+        /// </summary>
+        public static Timer MainTimer { get; set; }
+
+        /// <summary>
+        /// Таймер для проверки и установки обновлений
+        /// </summary>
+        public static System.Threading.Timer UpdateTimer { get; private set; }
+
+        /// <summary>
+        /// Отображает состояние процесса обновления приложения
+        /// </summary>
+        public static volatile bool IsUpdateRunning = false;
+
+        /// <summary>
         /// Значение true данного свойства означает что программа была запущена после установки обновления
         /// </summary>
         public static bool UpdatesInstalled { get; set; } = false;
 
         /// <summary>
-        /// Основной таймер программы
+        /// Минимальный интервал таймера обновлений
         /// </summary>
-        public static Timer MainTimer { get; set; }
+        private const int MinimumUpdateTimerInterval = 600000;
 
         /// <summary>
         /// Минимальный интервал основного таймера
@@ -199,7 +214,10 @@ namespace POFileManager {
         /// <param name="message">Строка для записи в журнал событий</param>
         /// <param name="logEntryType">Одно из значений System.Diagnostics.EventLogEntryType</param>
         public static void WriteToWindowsJournal(string message, EventLogEntryType logEntryType = EventLogEntryType.Information) {
-            MainEventLog.WriteEntry(message, logEntryType);
+            try {
+                MainEventLog.WriteEntry(message, logEntryType);
+            }
+            catch { }
         }
 
         /// <summary>
@@ -296,11 +314,6 @@ namespace POFileManager {
         /// <returns></returns>
         public static bool InitEngine() {
             try {
-                // Установка модуля обновления при его отсутствии
-                string updaterPath = Path.Combine(CurrentDirectory, "Updater.exe");
-                if (!File.Exists(updaterPath)) {
-                    File.WriteAllBytes(updaterPath, Properties.Resources.Updater);
-                }
 
                 if (!CheckCertificateExists(Configuration.Mail.CertificateName)) {
                     CreateMessage("Сертификат почтового сервера не установлен. Необходимо выполнить установку сертификата и повторно запустить программу", MessageType.Error, true, false, true);
@@ -347,11 +360,6 @@ namespace POFileManager {
                     Directory.CreateDirectory(TempSqlPath);
                 }
 
-                // Создаем сообщение об успешной установке обновления
-                if (UpdatesInstalled) {
-                    CreateMessage("Обновление успешно установлено", MessageType.Information, false, true, true);
-                }
-
                 // Проверка задач по обработке файлов
                 CreateMessage("Загрузка задач...", MessageType.Information, false, false, true);
                 StringBuilder errors = new StringBuilder();
@@ -388,6 +396,9 @@ namespace POFileManager {
                 MainTimer = new Timer();
                 MainTimer.Interval = Math.Max(MinimumMainTimerInterval, interval);
 
+                // Настройка таймера обновлений
+                UpdateTimer = new System.Threading.Timer((s) => CheckUpdates(), null, 0, Math.Max(MinimumUpdateTimerInterval, Configuration.CheckUpdateInterval));
+
                 CreateMessage("Инициализация и запуск именованного канала...", MessageType.Information, false, false, true);
                 NamedPipeListener<string> namedPipeListener = new NamedPipeListener<string>(ProductName);
                 namedPipeListener.MessageReceived += delegate (object sender, NamedPipeListenerMessageReceivedEventArgs<string> e) {
@@ -416,8 +427,19 @@ namespace POFileManager {
         /// Выролняет проверку наличия обновлений
         /// </summary>
         /// <returns></returns>
-        public static bool CheckUpdates() {
+        public static void CheckUpdates() {
             try {
+                if (IsUpdateRunning) {
+                    return;
+                }
+                // Установка модуля обновления при его отсутствии
+                string updaterPath = Path.Combine(CurrentDirectory, "Updater.exe");
+                if (!File.Exists(updaterPath)) {
+                    File.WriteAllBytes(updaterPath, Properties.Resources.Updater);
+                }
+                IsUpdateRunning = true;
+
+                CreateMessage("Проверка обновлений...", MessageType.Information, false, false, true);
                 try {
                     if (ARGS.Length > 0) {
                         foreach (string arg in ARGS) {
@@ -437,7 +459,8 @@ namespace POFileManager {
                                 }
                                 File.WriteAllBytes(path, Properties.Resources.Updater);
 
-                                UpdatesInstalled = true;
+                                // Создаем сообщение об успешной установке обновления
+                                CreateMessage("Обновление успешно установлено", MessageType.Information, false, true, true);
                             }
                         }
                     }
@@ -445,17 +468,21 @@ namespace POFileManager {
                 catch (Exception ex) {
                     CreateMessage("Ошибка при установке обновлений: " + ex.ToString(), MessageType.Error, true, false, true);
                 }
+                finally {
+                    IsUpdateRunning = false;
+                }
 
                 if (UpdatesHelper.CheckUpdates(Configuration.Updates.ServerName, Version, ProductName)) {
                     Process.Start(Path.Combine(CurrentDirectory, "Updater.exe"), string.Format("{0} {1} {2}", Version, Configuration.Updates.ServerName, ProductName));
-                    return true;
+                    GUIController.ExitOnLoaded();
                 }
 
-                return false;
             }
             catch (Exception ex) {
                 CreateMessage("Ошибка при проверке обновлений: " + ex.ToString(), MessageType.Error, false, false, true);
-                return false;
+            }
+            finally {
+                IsUpdateRunning = false;
             }
         }
     }

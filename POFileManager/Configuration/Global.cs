@@ -37,6 +37,12 @@ namespace POFileManager.Configuration {
         public int TaskInterval { get; set; }
 
         /// <summary>
+        /// Периодичность проверки обновлений
+        /// </summary>
+        [DataMember]
+        public int CheckUpdateInterval { get; set; }
+
+        /// <summary>
         /// Параметры задачи обработки файлов
         /// </summary>
         [DataMember]

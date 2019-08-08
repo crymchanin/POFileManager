@@ -72,6 +72,7 @@ namespace POFileManager {
                             hasHandle = mutex.WaitOne(3000, false);
                             if (hasHandle == false) {
                                 if (AppHelper.ARGS.FirstOrDefault(x => x.ToLower() == "-f") != null) {
+                                    AppHelper.CreateMessage("Выполнен запуск по требованию", MessageType.Information);
                                     NamedPipeListener<string>.SendMessage(AppHelper.ProductName, "force");
                                 }
                                 else {

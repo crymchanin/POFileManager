@@ -5,7 +5,6 @@ using POFileManager.GUI;
 using POFileManager.Net;
 using System;
 using System.Drawing;
-using System.Threading;
 using System.Windows.Forms;
 #endregion
 
@@ -75,22 +74,19 @@ namespace POFileManager {
         public MainForm() {
             InitializeComponent();
 
+            GUIController.Init(this);
+
             AppHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Information, false, false, true);
             if (!AppHelper.InitConfiguration()) {
-                Load += (s, e) => Application.Exit();
+                GUIController.ExitOnLoaded();
                 return;
             }
 
-            AppHelper.CreateMessage("Проверка обновлений...", MessageType.Information, false, false, true);
-            if (AppHelper.CheckUpdates()) {
-                Load += (s, e) => Application.Exit();
-                return;
-            }
+            Updates.UpdatesHelper.UpdateConfig();
 
-            AppHelper.CreateMessage("Инициализация основных параметров...", MessageType.Information, false, false, true);
-            GUIController.Init(this);
+            AppHelper.CreateMessage("Инициализация основных параметров...", MessageType.Information, false, false, true); 
             if (!AppHelper.InitEngine()) {
-                Load += (s, e) => Application.Exit();
+                GUIController.ExitOnLoaded();
                 return;
             }
             AppHelper.MainTimer.Tick += delegate(object s, EventArgs e) {
@@ -165,6 +161,7 @@ namespace POFileManager {
 
         // Обработчик события нажатия кнопки Запуск по требованию
         private void ForceRunButton_Click(object sender, EventArgs e) {
+            AppHelper.CreateMessage("Выполнен запуск по требованию", MessageType.Information);
             TasksHelper.RunTasksThread();
         }
     }
