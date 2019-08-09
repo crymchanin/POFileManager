@@ -1,6 +1,7 @@
 ﻿#region Пространства имен
 using Feodosiya.Lib.IO;
 using Feodosiya.Lib.Logs;
+using Feodosiya.Lib.Security;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -21,7 +22,7 @@ namespace POFileManager {
         /// <summary>
         /// Минимально необходимая версия сборки Feodosiya.Lib
         /// </summary>
-        private const string MinFeodosiyaLibVer = "1.2.2.212";
+        private const string MinFeodosiyaLibVer = "1.2.3.1";
         #endregion
 
         #region Методы
@@ -88,7 +89,7 @@ namespace POFileManager {
                         }
 
                         if (CheckDependencies()) {
-                            if (!AppHelper.IsAdministrator()) {
+                            if (!SecurityHelper.IsAdministrator()) {
                                 AppHelper.CreateMessage("Программу необходимо запускать от имени администратора", MessageType.Error, true);
                                 return;
                             }

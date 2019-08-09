@@ -49,7 +49,7 @@ namespace Configurator {
         }
 
         private void SaveButton_Click(object sender, EventArgs e) {
-            ConfHelper.SaveConfig(Configuration);
+            ConfHelper.SaveConfig(Configuration, Encoding.UTF8, true);
             if (!ConfHelper.Success) {
                 MessageBox.Show("Ошибка при сохранении конфигурации:\r\n" + ConfHelper.LastError.ToString(), "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }

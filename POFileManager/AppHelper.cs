@@ -2,6 +2,8 @@
 using Feodosiya.Lib.Conf;
 using Feodosiya.Lib.IO;
 using Feodosiya.Lib.Logs;
+using Feodosiya.Lib.Text;
+using Feodosiya.Lib.Security;
 using POFileManager.Configuration;
 using POFileManager.Mail;
 using POFileManager.Net;
@@ -219,31 +221,6 @@ namespace POFileManager {
             }
             catch { }
         }
-
-        /// <summary>
-        /// Проверяет наличие установленного сертификата для электронной почты в системе
-        /// </summary>
-        /// <returns></returns>
-        public static bool CheckCertificateExists(string cn) {
-            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
-            store.Open(OpenFlags.ReadOnly);
-
-            X509Certificate2Collection certificates = store.Certificates.Find(X509FindType.FindBySubjectName, cn, false);
-
-            return (certificates != null && certificates.Count > 0);
-        }
-
-        /// <summary>
-        /// Выполняет проверку получения повышенных привилегий программой
-        /// </summary>
-        /// <returns></returns>
-        public static bool IsAdministrator() {
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent()) {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
-
-                return principal.IsInRole(WindowsBuiltInRole.Administrator);
-            }
-        }
         #endregion
 
 
@@ -265,7 +242,7 @@ namespace POFileManager {
                 Log.ExceptionThrownEvent += (e) => MessageBox.Show(e.ToString(), "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 // Если не админ, то в журналы писать не сможем в связи с отсутствием прав
-                if (IsAdministrator()) {
+                if (SecurityHelper.IsAdministrator()) {
                     // Инициализация класса для взаимодействия с журналами Windows
                     MainEventLog = new EventLog();
                     MainEventLog.BeginInit();
@@ -315,7 +292,7 @@ namespace POFileManager {
         public static bool InitEngine() {
             try {
 
-                if (!CheckCertificateExists(Configuration.Mail.CertificateName)) {
+                if (!SecurityHelper.CheckCertificateExists(StoreName.Root, StoreLocation.CurrentUser, Configuration.Mail.CertificateName)) {
                     CreateMessage("Сертификат почтового сервера не установлен. Необходимо выполнить установку сертификата и повторно запустить программу", MessageType.Error, true, false, true);
                     return false;
                 }
@@ -385,7 +362,7 @@ namespace POFileManager {
                     }
                 }
                 if (errors.Length > 0) {
-                    CreateMessage("Ошибка при инициализации задач:\r\n" + errors.ToString(), MessageType.Error, true, true, true);
+                    CreateMessage("Ошибка при инициализации задач:\r\n" + errors.ToString(), MessageType.Error, false, true, true);
                 }
 
                 // Проверка существования таблицы для хранения данных об обработанных файлах
@@ -475,8 +452,16 @@ namespace POFileManager {
                 if (UpdatesHelper.CheckUpdates(Configuration.Updates.ServerName, Version, ProductName)) {
                     Process.Start(Path.Combine(CurrentDirectory, "Updater.exe"), string.Format("{0} {1} {2}", Version, Configuration.Updates.ServerName, ProductName));
                     GUIController.ExitOnLoaded();
+                    return;
                 }
 
+                CreateMessage("Проверка обновлений конфигурационного файла...", MessageType.Information, false, false, true);
+                if (UpdatesHelper.CheckConfigUpdates(Path.Combine(CurrentDirectory, "settings.upd"), Configuration)) {
+                    // Сохраняем изменения в конфигурационный файл
+                    ConfHelper.SaveConfig(Configuration, Encoding.UTF8, true);
+                    Configuration = ConfHelper.LoadConfig<Global>();
+                    CreateMessage("Выполнено обновление конфигурационного файла", MessageType.Information, false, false, true);
+                }
             }
             catch (Exception ex) {
                 CreateMessage("Ошибка при проверке обновлений: " + ex.ToString(), MessageType.Error, false, false, true);

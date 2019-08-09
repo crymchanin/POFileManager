@@ -1,0 +1,2 @@
+System.Boolean:DebuggingEnabled=true
+System.Int32:CheckUpdateInterval=60000

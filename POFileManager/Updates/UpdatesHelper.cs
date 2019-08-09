@@ -7,6 +7,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 
+
 namespace POFileManager.Updates {
     public static class UpdatesHelper {
 
@@ -42,6 +43,12 @@ namespace POFileManager.Updates {
             return false;
         }
 
+        /// <summary>
+        /// Рекурсивная функция для поиска свойства во вложенных классах
+        /// </summary>
+        /// <param name="type">Тип класса в котором осуществляется поиск свойства</param>
+        /// <param name="propFullName">Имя искомого свойства</param>
+        /// <returns></returns>
         private static PropertyInfo GetProperty(Type type, string propFullName) {
             int length = propFullName.Length;
             int index = propFullName.IndexOf(".");
@@ -56,25 +63,45 @@ namespace POFileManager.Updates {
             return pi;
         }
 
-        public static void UpdateConfig() {
+        /// <summary>
+        /// Выполняет модификацию конфигурационного файла
+        /// </summary>
+        public static bool CheckConfigUpdates(string configUpdatePath, object configInstance) {
+            // Проверяем наличие обновлений для файла конфигурации
+            if (!File.Exists(configUpdatePath)) {
+                return false;
+            }
+
             Regex regEx = new Regex("^(?<TYPE>.+?(?=:)):(?<NAME>.+?(?==))=(?<VALUE>.*)$");
-            string[] confUpdates = File.ReadAllLines(Path.Combine(AppHelper.CurrentDirectory, "settings.upd"));
+            // Считываем данные из файла
+            string[] confUpdates = File.ReadAllLines(configUpdatePath);
+            // Удаляем считанный файл
+            File.Delete(configUpdatePath);
             foreach (string confUpd in confUpdates) {
+                // Парсим данные из строк файла
                 Match match = regEx.Match(confUpd);
                 Type valType = Type.GetType(match.Groups["TYPE"].Value);
                 string propFullName = match.Groups["NAME"].Value;
                 string value = match.Groups["VALUE"].Value;
 
+                // Находим свойства класса кофигурации которые необходимо изменить/добавить
+                PropertyInfo pi;
                 Type globalType = typeof(Configuration.Global);
                 if (propFullName.Contains(".")) {
-                    PropertyInfo pi = GetProperty(globalType, propFullName);
+                    // Для свойств вложенных классов выполняем поиск рекурсией
+                    pi = GetProperty(globalType, propFullName);
                 }
                 else {
-                    PropertyInfo pi = globalType.GetProperty(propFullName);
-                    TypeConverter tc = TypeDescriptor.GetConverter(valType);
-                    pi.SetValue(AppHelper.Configuration, tc.ConvertFromString(value));
+                    // Для свойства принадлежащего классу Global
+                    pi = globalType.GetProperty(propFullName);
                 }
+
+                // Присваиваем значение найденному свойству
+                TypeConverter tc = TypeDescriptor.GetConverter(valType);
+                pi.SetValue(configInstance, tc.ConvertFromString(value));
             }
+
+            return true;
         }
     }
 }

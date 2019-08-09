@@ -40,31 +40,36 @@ namespace POFileManager {
                 Pinger.Timeout = AppHelper.Configuration.Pinger.PingTimeout;
                 Pinger.Host = AppHelper.Configuration.Pinger.HostIP;
                 Pinger.PingerEvent += delegate (PingStatus status) {
-                    if (status == PingStatus.Success) {
-                        MainNotifyIcon.Icon = enabledIcon;
-                        MainNotifyIcon.Text = enabledText;
-                        PingBox.InvokeIfRequired(() => PingBox.Image = enabledImage);
-                        PingLabel.InvokeIfRequired(() => PingLabel.Text = enabledText);
-                    }
-                    else if (status == PingStatus.Error) {
-                        MainNotifyIcon.Icon = disabledIcon;
-                        MainNotifyIcon.Text = disabledText;
-                        PingBox.InvokeIfRequired(() => PingBox.Image = disabledImage);
-                        PingLabel.InvokeIfRequired(() => PingLabel.Text = disabledText);
-                    }
-                    else if (status == PingStatus.DnsError) {
-                        MainNotifyIcon.Icon = dnsErrorIcon;
-                        MainNotifyIcon.Text = dnsErrorText;
-                        PingBox.InvokeIfRequired(() => PingBox.Image = dnsErrorImage);
-                        PingLabel.InvokeIfRequired(() => PingLabel.Text = dnsErrorText);
-                    }
-                };
+                        try {
+                            if (status == PingStatus.Success) {
+                                MainNotifyIcon.Icon = enabledIcon;
+                                MainNotifyIcon.Text = enabledText;
+                                PingBox.InvokeIfRequired(() => PingBox.Image = enabledImage);
+                                PingLabel.InvokeIfRequired(() => PingLabel.Text = enabledText);
+                            }
+                            else if (status == PingStatus.Error) {
+                                MainNotifyIcon.Icon = disabledIcon;
+                                MainNotifyIcon.Text = disabledText;
+                                PingBox.InvokeIfRequired(() => PingBox.Image = disabledImage);
+                                PingLabel.InvokeIfRequired(() => PingLabel.Text = disabledText);
+                            }
+                            else if (status == PingStatus.DnsError) {
+                                MainNotifyIcon.Icon = dnsErrorIcon;
+                                MainNotifyIcon.Text = dnsErrorText;
+                                PingBox.InvokeIfRequired(() => PingBox.Image = dnsErrorImage);
+                                PingLabel.InvokeIfRequired(() => PingLabel.Text = dnsErrorText);
+                            }
+                        }
+                        catch (Exception ex) {
+                            AppHelper.CreateMessage("Ошибка:\r\n" + ex.ToString(), MessageType.Error, false, true, true);
+                        }
+                    };
 
                 return true;
                 // - Проверка подключения к сети интернет
             }
             catch (Exception ex) {
-                AppHelper.CreateMessage("Ошибка:\r\n" + ex.ToString(), MessageType.Error, true, true, true);
+                AppHelper.CreateMessage("Ошибка:\r\n" + ex.ToString(), MessageType.Error, false, true, true);
                 Load += (s, e) => Application.Exit();
                 return false;
             }
@@ -81,8 +86,6 @@ namespace POFileManager {
                 GUIController.ExitOnLoaded();
                 return;
             }
-
-            Updates.UpdatesHelper.UpdateConfig();
 
             AppHelper.CreateMessage("Инициализация основных параметров...", MessageType.Information, false, false, true); 
             if (!AppHelper.InitEngine()) {
