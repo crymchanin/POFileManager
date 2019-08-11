@@ -72,7 +72,7 @@ namespace POFileManager.Updates {
                 return false;
             }
 
-            Regex regEx = new Regex("^(?<TYPE>.+?(?=:)):(?<NAME>.+?(?==))=(?<VALUE>.*)$");
+            Regex regEx = new Regex("^(?<TYPE>.+?(?=:)):(?<NAME>.+?(?==))=(?<VALUE>.*)$");// System.Boolea:DebuggingEnabled=true
             // Считываем данные из файла
             string[] confUpdates = File.ReadAllLines(configUpdatePath);
             // Удаляем считанный файл

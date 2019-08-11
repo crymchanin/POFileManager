@@ -420,7 +420,7 @@ namespace POFileManager {
                 try {
                     if (ARGS.Length > 0) {
                         foreach (string arg in ARGS) {
-                            if (arg.ToLower() == "-u") {
+                            if (arg.ToLower() == "-u" && !UpdatesInstalled) {
                                 Process[] processes = Process.GetProcessesByName("Updater");
                                 if (processes.Length > 0) {
                                     Process proc = processes[0];
@@ -438,6 +438,8 @@ namespace POFileManager {
 
                                 // Создаем сообщение об успешной установке обновления
                                 CreateMessage("Обновление успешно установлено", MessageType.Information, false, true, true);
+
+                                UpdatesInstalled = true;
                             }
                         }
                     }
