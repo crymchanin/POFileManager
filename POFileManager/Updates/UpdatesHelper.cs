@@ -21,7 +21,7 @@ namespace POFileManager.Updates {
         public static bool CheckUpdates(string updatesServ, string curVerStr, string productName) {
             string url = updatesServ + "?method=getVersion&appName=" + productName;
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
-            req.Timeout = 10000;
+            req.Timeout = 20000;
             using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse()) {
                 using (StreamReader stream = new StreamReader(resp.GetResponseStream())) {
                     string json = stream.ReadToEnd();
