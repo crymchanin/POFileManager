@@ -21,6 +21,7 @@ namespace POFileManager.Updates {
         public static bool CheckUpdates(string updatesServ, string curVerStr, string productName) {
             string url = updatesServ + "?method=getVersion&appName=" + productName;
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.Timeout = 10000;
             using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse()) {
                 using (StreamReader stream = new StreamReader(resp.GetResponseStream())) {
                     string json = stream.ReadToEnd();
@@ -72,7 +73,7 @@ namespace POFileManager.Updates {
                 return false;
             }
 
-            Regex regEx = new Regex("^(?<TYPE>.+?(?=:)):(?<NAME>.+?(?==))=(?<VALUE>.*)$");// System.Boolea:DebuggingEnabled=true
+            Regex regEx = new Regex("^(?<TYPE>.+?(?=:)):(?<NAME>.+?(?==))=(?<VALUE>.*)$");// System.Boolean:DebuggingEnabled=true
             // Считываем данные из файла
             string[] confUpdates = File.ReadAllLines(configUpdatePath);
             // Удаляем считанный файл

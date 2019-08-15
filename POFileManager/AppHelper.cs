@@ -405,58 +405,54 @@ namespace POFileManager {
         /// </summary>
         /// <returns></returns>
         public static void CheckUpdates() {
+            if (IsUpdateRunning) {
+                return;
+            }
+            IsUpdateRunning = true;
+
             try {
-                if (IsUpdateRunning) {
-                    return;
+                if (ARGS.Length > 0) {
+                    foreach (string arg in ARGS) {
+                        if (arg.ToLower() == "-u" && !UpdatesInstalled) {
+                            Process[] processes = Process.GetProcessesByName("Updater");
+                            if (processes.Length > 0) {
+                                Process proc = processes[0];
+                                FileVersionInfo info = FileVersionInfo.GetVersionInfo(proc.MainModule.FileName);
+                                if (info.CompanyName == "ФГУП Почта Крыма") {
+                                    proc.Kill();
+                                }
+                            }
+
+                            string path = Path.Combine(CurrentDirectory, "Updater.exe");
+                            if (File.Exists(path)) {
+                                File.Delete(path);
+                            }
+                            File.WriteAllBytes(path, Properties.Resources.Updater);
+
+                            // Создаем сообщение об успешной установке обновления
+                            CreateMessage("Обновление успешно установлено", MessageType.Information, false, true, true);
+
+                            UpdatesInstalled = true;
+                        }
+                    }
                 }
+            }
+            catch (Exception ex) {
+                CreateMessage("Ошибка при установке обновлений: " + ex.ToString(), MessageType.Error, true, false, true);
+            }
+
+            try {
                 // Установка модуля обновления при его отсутствии
                 string updaterPath = Path.Combine(CurrentDirectory, "Updater.exe");
                 if (!File.Exists(updaterPath)) {
                     File.WriteAllBytes(updaterPath, Properties.Resources.Updater);
                 }
-                IsUpdateRunning = true;
+            }
+            catch (Exception ex) {
+                CreateMessage("Ошибка при распаковке клиента обновлений: " + ex.ToString(), MessageType.Error, false, false, false);
+            }
 
-                CreateMessage("Проверка обновлений...", MessageType.Information, false, false, true);
-                try {
-                    if (ARGS.Length > 0) {
-                        foreach (string arg in ARGS) {
-                            if (arg.ToLower() == "-u" && !UpdatesInstalled) {
-                                Process[] processes = Process.GetProcessesByName("Updater");
-                                if (processes.Length > 0) {
-                                    Process proc = processes[0];
-                                    FileVersionInfo info = FileVersionInfo.GetVersionInfo(proc.MainModule.FileName);
-                                    if (info.CompanyName == "ФГУП Почта Крыма") {
-                                        proc.Kill();
-                                    }
-                                }
-
-                                string path = Path.Combine(CurrentDirectory, "Updater.exe");
-                                if (File.Exists(path)) {
-                                    File.Delete(path);
-                                }
-                                File.WriteAllBytes(path, Properties.Resources.Updater);
-
-                                // Создаем сообщение об успешной установке обновления
-                                CreateMessage("Обновление успешно установлено", MessageType.Information, false, true, true);
-
-                                UpdatesInstalled = true;
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex) {
-                    CreateMessage("Ошибка при установке обновлений: " + ex.ToString(), MessageType.Error, true, false, true);
-                }
-                finally {
-                    IsUpdateRunning = false;
-                }
-
-                if (UpdatesHelper.CheckUpdates(Configuration.Updates.ServerName, Version, ProductName)) {
-                    Process.Start(Path.Combine(CurrentDirectory, "Updater.exe"), string.Format("{0} {1} {2}", Version, Configuration.Updates.ServerName, ProductName));
-                    GUIController.ExitOnLoaded();
-                    return;
-                }
-
+            try {
                 CreateMessage("Проверка обновлений конфигурационного файла...", MessageType.Information, false, false, true);
                 if (UpdatesHelper.CheckConfigUpdates(Path.Combine(CurrentDirectory, "settings.upd"), Configuration)) {
                     // Сохраняем изменения в конфигурационный файл
@@ -466,11 +462,22 @@ namespace POFileManager {
                 }
             }
             catch (Exception ex) {
+                CreateMessage("Ошибка при установке обновлений конфигурационного файла: " + ex.ToString(), MessageType.Error, false, false, true);
+            }
+
+            try {
+                CreateMessage("Проверка обновлений...", MessageType.Information, false, false, true);
+                if (UpdatesHelper.CheckUpdates(Configuration.Updates.ServerName, Version, ProductName)) {
+                    Process.Start(Path.Combine(CurrentDirectory, "Updater.exe"), string.Format("{0} {1} {2}", Version, Configuration.Updates.ServerName, ProductName));
+                    GUIController.ExitOnLoaded();
+                    return;
+                }
+            }
+            catch (Exception ex) {
                 CreateMessage("Ошибка при проверке обновлений: " + ex.ToString(), MessageType.Error, false, false, true);
             }
-            finally {
-                IsUpdateRunning = false;
-            }
+
+            IsUpdateRunning = false;
         }
     }
 }
