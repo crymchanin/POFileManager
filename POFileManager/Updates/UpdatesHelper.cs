@@ -45,6 +45,39 @@ namespace POFileManager.Updates {
         }
 
         /// <summary>
+        /// Отправляет информацию о текущей версии программы
+        /// </summary>
+        /// <param name="updatesServ">Сервер обновлений</param>
+        /// <param name="zipCode">Индекс отеделения</param>
+        /// <param name="productName">Имя продукта</param>
+        /// <param name="curVerStr">Текущая версия программы</param>
+        /// <returns></returns>
+        public static bool SendVersionInformation(string updatesServ, int zipCode, string productName, string curVerStr, out string errorMessage) {
+            string url = string.Format("{0}?method=putClientInfo&zipcode={1}&appName={2}&version={3}&machine={4}",
+                updatesServ, zipCode, productName, curVerStr, Environment.MachineName);
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.Timeout = 20000;
+            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse()) {
+                using (StreamReader stream = new StreamReader(resp.GetResponseStream())) {
+                    string json = stream.ReadToEnd();
+                    using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(json))) {
+                        DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(ResponseObject));
+
+                        ResponseObject respObj = (ResponseObject)ser.ReadObject(ms);
+                        if (respObj.success) {
+                            errorMessage = string.Empty;
+                            return true;
+                        }
+                        else {
+                            errorMessage = respObj.result;
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Рекурсивная функция для поиска свойства во вложенных классах
         /// </summary>
         /// <param name="type">Тип класса в котором осуществляется поиск свойства</param>

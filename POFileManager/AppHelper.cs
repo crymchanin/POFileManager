@@ -2,7 +2,6 @@
 using Feodosiya.Lib.Conf;
 using Feodosiya.Lib.IO;
 using Feodosiya.Lib.Logs;
-using Feodosiya.Lib.Text;
 using Feodosiya.Lib.Security;
 using POFileManager.Configuration;
 using POFileManager.Mail;
@@ -14,10 +13,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
-using System.ServiceProcess;
 #endregion
 
 
@@ -222,33 +219,6 @@ namespace POFileManager {
             }
             catch { }
         }
-
-        /// <summary>
-        /// Запуск службы Firebird
-        /// </summary>
-        /// <returns></returns>
-        public static bool StartFirebirdService() {
-            ServiceController sc = new ServiceController();
-            sc.ServiceName = "FirebirdGuardianDefaultInstance";
-
-            if (sc.Status == ServiceControllerStatus.Stopped) {
-                try {
-                    sc.Start();
-                    sc.WaitForStatus(ServiceControllerStatus.Running);
-
-                    return true;
-                }
-                catch (InvalidOperationException) {
-                    return false;
-                }
-            }
-            else if (sc.Status == ServiceControllerStatus.Running) {
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
         #endregion
 
 
@@ -365,12 +335,6 @@ namespace POFileManager {
                     Directory.CreateDirectory(TempSqlPath);
                 }
 
-                CreateMessage("Ожидание службы Firebird...", MessageType.Information, false, false, true);
-                if (!StartFirebirdService()) {
-                    CreateMessage("Служба Firebird не была запущена. Дальнейшая работа программы невозможна", MessageType.Information, true, true, true);
-                    return false;
-                }
-
                 // Проверка задач по обработке файлов
                 CreateMessage("Загрузка задач...", MessageType.Information, false, false, true);
                 StringBuilder errors = new StringBuilder();
@@ -425,6 +389,20 @@ namespace POFileManager {
                     CreateMessage(string.Format("Ошибка Pipe: ({0}): {1}", e.ErrorType, e.Exception.Message), MessageType.Error, false, false, true);
                 };
                 namedPipeListener.Start();
+
+                CreateMessage("Отправка информации о текущей версии программы на сервер обновлений...", MessageType.Information, false, false, true);
+                System.Threading.Thread thread = new System.Threading.Thread(delegate() {
+                    try {
+                        string errorString;
+                        if (!UpdatesHelper.SendVersionInformation(Configuration.Updates.ServerName, Configuration.ZipCode, ProductName, Version, out errorString)) {
+                            throw new Exception(errorString);
+                        }
+                    }
+                    catch (Exception ex) {
+                        CreateMessage("Ошибка при отправке информации о текущей версии программы:\r\n" + ex.ToString(), MessageType.Error, false, false, true);
+                    }
+                });
+                thread.Start();
 
                 return true;
             }

@@ -2,8 +2,10 @@
 using Feodosiya.Lib.Security;
 using FirebirdSql.Data.FirebirdClient;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.ServiceProcess;
 using System.Text.RegularExpressions;
 #endregion
 
@@ -19,10 +21,75 @@ namespace POFileManager.SQL {
         #endregion
 
         /// <summary>
+        /// Запуск службы Firebird
+        /// </summary>
+        /// <returns></returns>
+        public static bool StartFirebirdService() {
+            ServiceController sc = new ServiceController();
+            sc.ServiceName = "FirebirdGuardianDefaultInstance";
+            bool flag = false;
+
+            switch (sc.Status) {
+                case ServiceControllerStatus.Stopped:
+                case ServiceControllerStatus.Paused:
+                    try {
+                        sc.Start();
+                        sc.WaitForStatus(ServiceControllerStatus.Running);
+
+                        flag = true;
+                    }
+                    catch (Exception) {
+                        flag = false;
+                    }
+                    break;
+                case ServiceControllerStatus.StopPending:
+                    try {
+                        sc.WaitForStatus(ServiceControllerStatus.Stopped);
+                        sc.Start();
+                        sc.WaitForStatus(ServiceControllerStatus.Running);
+
+                        flag = true;
+                    }
+                    catch (Exception) {
+                        flag = false;
+                    }
+                    break;
+                case ServiceControllerStatus.PausePending:
+                    try {
+                        sc.WaitForStatus(ServiceControllerStatus.Paused);
+                        sc.Start();
+                        sc.WaitForStatus(ServiceControllerStatus.Running);
+
+                        flag = true;
+                    }
+                    catch (Exception) {
+                        flag = false;
+                    }
+                    break;
+                case ServiceControllerStatus.Running:
+                    flag = true;
+                    break;
+                case ServiceControllerStatus.StartPending:
+                case ServiceControllerStatus.ContinuePending:
+                    sc.WaitForStatus(ServiceControllerStatus.Running);
+                    flag = true;
+                    break;
+                default:
+                    break;
+            }
+
+            return flag;
+        }
+
+        /// <summary>
         /// Создает таблицу для задач с проверкой дубликации файлов
         /// </summary>
         /// <param name="taskName">Имя таблицы</param>
         public static void CreateTableFingerprint(string taskName) {
+            if (!StartFirebirdService()) {
+                throw new Exception("Не удалось запустить службу Firebird. Дальнейшая работа программы невозможна");
+            }
+
             string connStr = @"SELECT 1 FROM RDB$RELATIONS
                                WHERE RDB$RELATION_NAME = '" + taskName + "'";
             object result;
@@ -66,6 +133,10 @@ namespace POFileManager.SQL {
         /// Создает таблицу для хранения данных об обработанных файлах в случае её отсутствия
         /// </summary>
         public static void CreateTableOperationInfo() {
+            if (!StartFirebirdService()) {
+                throw new Exception("Не удалось запустить службу Firebird. Дальнейшая работа программы невозможна");
+            }
+
             string connStr = @"SELECT 1 FROM RDB$RELATIONS
                                WHERE RDB$RELATION_NAME = 'FILES'";
             object result;
