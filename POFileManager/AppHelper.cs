@@ -17,6 +17,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
+using System.ServiceProcess;
 #endregion
 
 
@@ -221,6 +222,33 @@ namespace POFileManager {
             }
             catch { }
         }
+
+        /// <summary>
+        /// Запуск службы Firebird
+        /// </summary>
+        /// <returns></returns>
+        public static bool StartFirebirdService() {
+            ServiceController sc = new ServiceController();
+            sc.ServiceName = "FirebirdGuardianDefaultInstance";
+
+            if (sc.Status == ServiceControllerStatus.Stopped) {
+                try {
+                    sc.Start();
+                    sc.WaitForStatus(ServiceControllerStatus.Running);
+
+                    return true;
+                }
+                catch (InvalidOperationException) {
+                    return false;
+                }
+            }
+            else if (sc.Status == ServiceControllerStatus.Running) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
         #endregion
 
 
@@ -335,6 +363,12 @@ namespace POFileManager {
                 TempSqlPath = Path.Combine(TempPath, "Sql");
                 if (!Directory.Exists(TempSqlPath)) {
                     Directory.CreateDirectory(TempSqlPath);
+                }
+
+                CreateMessage("Ожидание службы Firebird...", MessageType.Information, false, false, true);
+                if (!StartFirebirdService()) {
+                    CreateMessage("Служба Firebird не была запущена. Дальнейшая работа программы невозможна", MessageType.Information, true, true, true);
+                    return false;
                 }
 
                 // Проверка задач по обработке файлов
