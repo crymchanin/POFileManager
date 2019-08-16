@@ -26,7 +26,7 @@ namespace POFileManager.SQL {
         /// <returns></returns>
         public static bool StartFirebirdService() {
             ServiceController sc = new ServiceController();
-            sc.ServiceName = "FirebirdGuardianDefaultInstance";
+            sc.ServiceName = "FirebirdServerDefaultInstance";
             bool flag = false;
 
             switch (sc.Status) {
