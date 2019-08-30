@@ -418,7 +418,7 @@ namespace POFileManager {
                         });
                         thread.Start();
                     }
-                });
+                }, null, 0, Math.Max(MinimumUpdateTimerInterval, Configuration.CheckUpdateInterval));
 
                 return true;
             }
