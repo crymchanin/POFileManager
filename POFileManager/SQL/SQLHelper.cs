@@ -87,7 +87,7 @@ namespace POFileManager.SQL {
         /// <param name="taskName">Имя таблицы</param>
         public static void CreateTableFingerprint(string taskName) {
             if (!StartFirebirdService()) {
-                throw new Exception("Не удалось запустить службу Firebird. Дальнейшая работа программы невозможна");
+                throw new Exception("Не удалось запустить службу Firebird");
             }
 
             string connStr = @"SELECT 1 FROM RDB$RELATIONS
@@ -134,7 +134,7 @@ namespace POFileManager.SQL {
         /// </summary>
         public static void CreateTableOperationInfo() {
             if (!StartFirebirdService()) {
-                throw new Exception("Не удалось запустить службу Firebird. Дальнейшая работа программы невозможна");
+                throw new Exception("Не удалось запустить службу Firebird");
             }
 
             string connStr = @"SELECT 1 FROM RDB$RELATIONS

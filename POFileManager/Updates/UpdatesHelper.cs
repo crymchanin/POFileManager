@@ -12,6 +12,12 @@ namespace POFileManager.Updates {
     public static class UpdatesHelper {
 
         /// <summary>
+        /// Состояние отправки версии программы на сервер обновлений
+        /// </summary>
+        public static bool VersionSended { get; set; }
+
+
+        /// <summary>
         /// Проверяет наличие обновлений на сервере
         /// </summary>
         /// <param name="updatesServ">Сервер обновлений</param>

@@ -236,13 +236,13 @@ namespace POFileManager {
                                 SQLHelper.WriteFileOperationInfo(fInfos);
                             }
                             if (uploadEx != null) {
-                                AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + uploadEx.ToString(), MessageType.Error, false, true, true);
+                                AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + uploadEx.ToString(), MessageType.Error, false, false, true);
                             }
                         }
                     }
                 }
                 catch (Exception ex) {
-                    AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + ex.ToString(), MessageType.Error, false, true, true);
+                    AppHelper.CreateMessage("Ошибка при повторной отправке архива: " + ex.ToString(), MessageType.Error, false, false, true);
                 }
 
                 // Запаковываем файлы в архив

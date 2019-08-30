@@ -344,7 +344,12 @@ namespace POFileManager {
                         task.ExternalLibAsm = Assembly.LoadFile(Path.Combine(CurrentDirectory, task.ExternalLib));
                     }
                     if (!task.AllowDuplicate) {
-                        SQLHelper.CreateTableFingerprint(task.Name);
+                        try {
+                            SQLHelper.CreateTableFingerprint(task.Name);
+                        }
+                        catch (Exception ex) {
+                            errors.AppendLine(string.Format("Ошибка: {0}", ex.ToString()));
+                        }
                     }
 
                     try {
@@ -363,8 +368,13 @@ namespace POFileManager {
                     CreateMessage("Ошибка при инициализации задач:\r\n" + errors.ToString(), MessageType.Error, false, true, true);
                 }
 
-                // Проверка существования таблицы для хранения данных об обработанных файлах
-                SQLHelper.CreateTableOperationInfo();
+                try {
+                    // Проверка существования таблицы для хранения данных об обработанных файлах
+                    SQLHelper.CreateTableOperationInfo();
+                }
+                catch (Exception ex) {
+                    CreateMessage("Ошибка при инициализации программы:\r\n" + ex.ToString(), MessageType.Error, false, true, true);
+                }
 
                 // Настройка главного таймера
                 int interval = Configuration.TaskInterval;
@@ -390,19 +400,25 @@ namespace POFileManager {
                 };
                 namedPipeListener.Start();
 
-                CreateMessage("Отправка информации о текущей версии программы на сервер обновлений...", MessageType.Information, false, false, true);
-                System.Threading.Thread thread = new System.Threading.Thread(delegate() {
-                    try {
-                        string errorString;
-                        if (!UpdatesHelper.SendVersionInformation(Configuration.Updates.ServerName, Configuration.ZipCode, ProductName, Version, out errorString)) {
-                            throw new Exception(errorString);
-                        }
-                    }
-                    catch (Exception ex) {
-                        CreateMessage("Ошибка при отправке информации о текущей версии программы:\r\n" + ex.ToString(), MessageType.Error, false, false, true);
+                new System.Threading.Timer(delegate (object state) {
+                    if (!UpdatesHelper.VersionSended) {
+                        CreateMessage("Отправка информации о текущей версии программы на сервер обновлений...", MessageType.Information, false, false, true);
+                        System.Threading.Thread thread = new System.Threading.Thread(delegate () {
+                            try {
+                                string errorString;
+                                if (!UpdatesHelper.SendVersionInformation(Configuration.Updates.ServerName, Configuration.ZipCode, ProductName, Version, out errorString)) {
+                                    throw new Exception(errorString);
+                                }
+                                UpdatesHelper.VersionSended = true;
+                            }
+                            catch (Exception ex) {
+                                UpdatesHelper.VersionSended = false;
+                                CreateMessage("Ошибка при отправке информации о текущей версии программы:\r\n" + ex.ToString(), MessageType.Error, false, false, true);
+                            }
+                        });
+                        thread.Start();
                     }
                 });
-                thread.Start();
 
                 return true;
             }
