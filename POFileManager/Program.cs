@@ -4,8 +4,6 @@ using Feodosiya.Lib.Logs;
 using Feodosiya.Lib.Security;
 using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -22,7 +20,7 @@ namespace POFileManager {
         /// <summary>
         /// Минимально необходимая версия сборки Feodosiya.Lib
         /// </summary>
-        private const string MinFeodosiyaLibVer = "1.2.3.1";
+        private const string MinFeodosiyaLibVer = "1.2.3.2";
         #endregion
 
         #region Методы
@@ -44,6 +42,7 @@ namespace POFileManager {
             }
         }
         #endregion
+
 
         #region Main
         [STAThread]

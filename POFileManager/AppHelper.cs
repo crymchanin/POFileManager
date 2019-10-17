@@ -340,8 +340,9 @@ namespace POFileManager {
                 StringBuilder errors = new StringBuilder();
                 foreach (Task task in Configuration.Tasks) {
                     task.Name = task.Name.ToUpper();
+                    task.Source = Environment.ExpandEnvironmentVariables(task.Source);
                     if (!string.IsNullOrWhiteSpace(task.ExternalLib)) {
-                        task.ExternalLibAsm = Assembly.LoadFile(Path.Combine(CurrentDirectory, task.ExternalLib));
+                        task.ExternalLibAsm = Assembly.LoadFile(Path.Combine(CurrentDirectory, Environment.ExpandEnvironmentVariables(task.ExternalLib)));
                     }
                     if (!task.AllowDuplicate) {
                         try {

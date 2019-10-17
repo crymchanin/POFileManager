@@ -111,7 +111,7 @@ namespace POFileManager {
             }
             try {
                 WindowState = FormWindowState.Minimized;
-                Hide();
+                //Hide();
             }
             catch (Exception ex) {
                 AppHelper.CreateMessage("Ошибка: " + ex.ToString(), MessageType.Error, false, false, true);
