@@ -2,7 +2,7 @@
 using FluentFTP;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
-using POFileManager.SQL;
+using POFileManagerService.SQL;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,44 +11,14 @@ using System.Text.RegularExpressions;
 #endregion
 
 
-namespace POFileManager.Net {
-
+namespace POFileManagerService.Net {
     public static class FtpHelper {
 
         #region Члены и свойства класса
-        private static string s_cwd;
-
         /// <summary>
-        /// Имя пользователя отправителя на ftp сервере
+        /// Параметры подключения к ftp серверу
         /// </summary>
-        public static string Username { get; set; }
-
-        /// <summary>
-        /// Пароль пользователя отправителя на ftp сервере
-        /// </summary>
-        public static string Password { get; set; }
-
-        /// <summary>
-        /// Адрес ftp сервера
-        /// </summary>
-        public static string Host { get; set; }
-
-        /// <summary>
-        /// Текущий каталог ftp сервера
-        /// </summary>
-        public static string Cwd {
-            get {
-                return s_cwd;
-            }
-            set {
-                s_cwd = value.EndsWith("/") ? value : (value + "/");
-            }
-        }
-
-        /// <summary>
-        /// Порт для подключения к ftp серверу
-        /// </summary>
-        public static int Port { get; set; }
+        public static Configuration.Ftp FtpConfinguration { get; set; }
         #endregion
 
 
@@ -145,12 +115,13 @@ namespace POFileManager.Net {
         /// <param name="exception">Содержит информацию о произошедшей ошибке во вермя загрузки архива. При успешном выполнении загрузки имеет значение null</param>
         public static bool UploadArchive(string zipPath, int zipCode, out Exception exception) {
             try {
-                using (FtpClient client = new FtpClient(Host, Port, new System.Net.NetworkCredential(Username, Password))) {
+                using (FtpClient client = new FtpClient(FtpConfinguration.Host, FtpConfinguration.Port,
+                    new System.Net.NetworkCredential(FtpConfinguration.Username, FtpConfinguration.Password))) {
                     client.Connect();
                     client.DataConnectionType = FtpDataConnectionType.PASV;
-                    client.SetWorkingDirectory(Cwd);
+                    client.SetWorkingDirectory(FtpConfinguration.Cwd);
 
-                    string ftpFile = string.Format("{0}{1}/{2}", Cwd, zipCode, Path.GetFileName(zipPath));
+                    string ftpFile = string.Format("{0}{1}/{2}", FtpConfinguration.Cwd, zipCode, Path.GetFileName(zipPath));
                     FtpStatus flag = client.UploadFile(zipPath, ftpFile);
 
                     if (flag == FtpStatus.Success) {

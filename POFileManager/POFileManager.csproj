@@ -71,9 +71,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\FirebirdSql.Data.FirebirdClient.dll</HintPath>
     </Reference>
-    <Reference Include="FluentFTP, Version=21.0.0.0, Culture=neutral, PublicKeyToken=f4af092b1d8df44f, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentFTP.21.0.0\lib\net45\FluentFTP.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="FluentFTP, Version=32.3.1.0, Culture=neutral, PublicKeyToken=f4af092b1d8df44f, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentFTP.32.3.1\lib\net45\FluentFTP.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
