@@ -12,28 +12,29 @@ namespace POFileManagerService {
     public partial class MainService : ServiceBase {
         public MainService() {
             InitializeComponent();
-#if DEBUG
-            Thread.Sleep(5000);
-#endif
+
+            #if DEBUG
+                Thread.Sleep(5000);
+            #endif
 
             if (!(ServiceHelper.IsInitialized = ServiceHelper.PreInit(MainEventLog))) {
                 Stop();
                 return;
             }
 
-            ServiceHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Information, true);
+            ServiceHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Debug);
             if (!(ServiceHelper.IsInitialized = ServiceHelper.InitConfiguration())) {
                 Stop();
                 return;
             }
 
-            ServiceHelper.CreateMessage("Инициализация основных параметров...", MessageType.Information, true);
+            ServiceHelper.CreateMessage("Инициализация основных параметров...", MessageType.Debug);
             if (!(ServiceHelper.IsInitialized = ServiceHelper.InitEngine())) {
                 Stop();
                 return;
             }
 
-            ServiceHelper.CreateMessage("Инициализация планировщика...", MessageType.Information, true);
+            ServiceHelper.CreateMessage("Инициализация планировщика...", MessageType.Debug);
             ServiceHelper.MainTimer = new Timer(delegate (object s) {
                 TasksHelper.RunTasksThread();
             }, null, Timeout.Infinite, Timeout.Infinite);
@@ -47,7 +48,7 @@ namespace POFileManagerService {
 
                 ServiceHelper.CreateMessage("Запуск планировщика...", MessageType.Information, true);
                 ServiceHelper.MainTimer.Change(0, Math.Max(ServiceHelper.MinimumMainTimerInterval, ServiceHelper.Configuration.TaskInterval));
-                ServiceHelper.CreateMessage("Инициализация и запуск именованного канала...", MessageType.Information, true);
+                ServiceHelper.CreateMessage("Инициализация и запуск именованного канала...", MessageType.Debug);
                 ServiceHelper.NamedPipeListener = new NamedPipeListener<string>(ServiceHelper.ProductName, System.Security.Principal.WellKnownSidType.AuthenticatedUserSid);
                 ServiceHelper.NamedPipeListener.MessageReceived += delegate (object sender, NamedPipeListenerMessageReceivedEventArgs<string> e) {
                     switch (e.Message) {
@@ -77,7 +78,7 @@ namespace POFileManagerService {
                         Thread.Sleep(1000);
                     }
                     try {
-                        ServiceHelper.CreateMessage("Отправка сигнала о завершении выполнения задач", MessageType.Information);
+                        ServiceHelper.CreateMessage("Отправка сигнала о завершении выполнения задач...", MessageType.Debug);
                         NamedPipeListener<string>.SendMessage("POFileManagerClient", "complete");
                     }
                     catch { }
@@ -89,7 +90,7 @@ namespace POFileManagerService {
                     ServiceHelper.MainTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
                 if (ServiceHelper.NamedPipeListener != null) {
-                    ServiceHelper.CreateMessage("Отключение именованного канала...", MessageType.Information, true);
+                    ServiceHelper.CreateMessage("Отключение именованного канала...", MessageType.Debug);
                     ServiceHelper.NamedPipeListener.End();
                 }
             }
