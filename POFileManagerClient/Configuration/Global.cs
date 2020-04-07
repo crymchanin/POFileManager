@@ -11,6 +11,12 @@ namespace POFileManagerClient.Configuration {
         [DataMember]
         public Pinger Pinger { get; set; }
 
+        /// <summary>
+        /// Включение\отключение режима отладки
+        /// </summary>
+        [DataMember]
+        public bool DebuggingEnabled { get; set; }
+
         [OnSerializing()]
         internal void OnSerializing(StreamingContext context) {
             Pinger = (Pinger == null) ? new Pinger() {

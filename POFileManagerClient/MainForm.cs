@@ -27,23 +27,30 @@ namespace POFileManagerClient {
         public MainForm() {
             InitializeComponent();
 
-            AppHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Information);
+            AppHelper.CreateMessage("Выполнен запуск приложения", MessageType.Information);
+
+            AppHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Debug);
             if (!AppHelper.InitConfiguration()) {
                 Load += (s, e) => Application.Exit();
                 return;
             }
 
-            AppHelper.CreateMessage("Инициализация основных параметров...", MessageType.Information);
+            AppHelper.CreateMessage("Инициализация основных параметров...", MessageType.Debug);
             if (!AppHelper.InitEngine(this)) {
                 Load += (s, e) => Application.Exit();
                 return;
             }
 
-            AppHelper.CreateMessage("Инициализация проверки связи...", MessageType.Information);
+            AppHelper.CreateMessage("Инициализация проверки связи...", MessageType.Debug);
             if (!InitPinger()) {
                 Load += (s, e) => Application.Exit();
                 return;
             }
+
+            #if DEBUG
+                Text = Text + " (DEBUG)";
+                ForceRunButton.Text = ForceRunButton.Text + " (DEBUG)";
+            #endif
         }
 
         /// <summary>
@@ -110,6 +117,7 @@ namespace POFileManagerClient {
 
         private void ForceRunButton_Click(object sender, EventArgs e) {
             try {
+                AppHelper.CreateMessage("Запущена ручная выгрузка файлов", MessageType.Information);
                 ForceRunButton.Enabled = false;
                 NamedPipeListener<string>.SendMessage("POFileManagerService", "force");
             }

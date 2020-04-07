@@ -54,12 +54,6 @@
     <Compile Include="FileCondition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\POFileManager\POFileManager.csproj">
-      <Project>{f167580b-5203-4dba-b6cf-aee4675ac9a5}</Project>
-      <Name>POFileManager</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -119,6 +119,9 @@ namespace POFileManagerService {
                         return;
                     }
                 }
+                else {
+                    return;
+                }
             }
 
             try {

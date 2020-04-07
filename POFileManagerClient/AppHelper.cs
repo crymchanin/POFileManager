@@ -67,6 +67,17 @@ namespace POFileManagerClient {
         /// <param name="messageType">Тип сообщения</param>
         /// <param name="showMessageBox">Отображает окно сообщения если установлено в true</param>
         public static void CreateMessage(string message, MessageType messageType, bool showMessageBox = false) {
+            if (messageType == MessageType.Debug) {
+                if (Configuration != null) {
+                    if (!Configuration.DebuggingEnabled) {
+                        return;
+                    }
+                }
+                else {
+                    return;
+                }
+            }
+
             try {
                 Log.Write(message, messageType);
             }
@@ -161,7 +172,7 @@ namespace POFileManagerClient {
         /// <returns></returns>
         public static bool InitEngine(MainForm mainForm) {
             try {
-                CreateMessage("Инициализация и запуск именованного канала...", MessageType.Information);
+                CreateMessage("Инициализация и запуск именованного канала...", MessageType.Debug);
                 NamedPipeListener = new NamedPipeListener<string>(ProductName, System.Security.Principal.WellKnownSidType.AuthenticatedUserSid);
                 NamedPipeListener.MessageReceived += delegate (object sender, NamedPipeListenerMessageReceivedEventArgs<string> e) {
                     switch (e.Message) {
@@ -179,6 +190,16 @@ namespace POFileManagerClient {
                     CreateMessage(string.Format("Ошибка Pipe: ({0}): {1}", e.ErrorType, e.Exception.Message), MessageType.Error);
                 };
                 NamedPipeListener.Start();
+
+                try {
+                    CreateMessage("Добавление программы в автозагрузку...", MessageType.Debug);
+                    #if !DEBUG
+                        Feodosiya.Lib.App.AppHelper.AddToAutorun(Path.Combine(CurrentDirectory, ProductName + ".exe"));
+                    #endif
+                }
+                catch (Exception ex) {
+                    CreateMessage("Ошибка при добавление программы в автозагрузку:\r\n" + ex.ToString(), MessageType.Error);
+                }
 
                 return true;
             }

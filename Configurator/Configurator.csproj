@@ -103,12 +103,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\POFileManager\POFileManager.csproj">
-      <Project>{f167580b-5203-4dba-b6cf-aee4675ac9a5}</Project>
-      <Name>POFileManager</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

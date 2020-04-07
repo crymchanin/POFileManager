@@ -3,14 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28306.52
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POFileManager", "POFileManager\POFileManager.csproj", "{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tasks.PostItem", "Tasks.PostItem\Tasks.PostItem.csproj", "{F8957F0C-3A79-438A-8ECE-C141F14B8134}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Updater", "Updates\Updater.csproj", "{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configurator", "Configurator\Configurator.csproj", "{A0B96405-14B7-445F-AC9F-5227576DB9EC}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POFileManagerService", "POFileManagerService\POFileManagerService.csproj", "{22644CCF-87AC-426A-B9DC-1F1207BDBFCC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POFileManagerClient", "POFileManagerClient\POFileManagerClient.csproj", "{82CD5286-AD3D-4537-BB97-CA02E0D786C2}"
@@ -23,37 +15,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}.Debug|Any CPU.Build.0 = Debug|x86
-		{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}.Debug|x86.ActiveCfg = Debug|x86
-		{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}.Debug|x86.Build.0 = Debug|x86
-		{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}.Release|Any CPU.ActiveCfg = Release|x86
-		{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}.Release|x86.ActiveCfg = Release|x86
-		{F167580B-5203-4DBA-B6CF-AEE4675AC9A5}.Release|x86.Build.0 = Release|x86
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Debug|x86.Build.0 = Debug|Any CPU
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Release|x86.ActiveCfg = Release|Any CPU
-		{F8957F0C-3A79-438A-8ECE-C141F14B8134}.Release|x86.Build.0 = Release|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Debug|x86.Build.0 = Debug|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Release|x86.ActiveCfg = Release|Any CPU
-		{6009246F-1FA8-4898-A9D7-B874ED6E1B4E}.Release|x86.Build.0 = Release|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Debug|x86.Build.0 = Debug|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Release|x86.ActiveCfg = Release|Any CPU
-		{A0B96405-14B7-445F-AC9F-5227576DB9EC}.Release|x86.Build.0 = Release|Any CPU
 		{22644CCF-87AC-426A-B9DC-1F1207BDBFCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{22644CCF-87AC-426A-B9DC-1F1207BDBFCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22644CCF-87AC-426A-B9DC-1F1207BDBFCC}.Debug|x86.ActiveCfg = Debug|Any CPU
