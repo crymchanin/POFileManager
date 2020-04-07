@@ -1,5 +1,6 @@
 ﻿#region Пространства имен
 using Feodosiya.Lib.IO;
+using Feodosiya.Lib.IO.Pipes;
 using Feodosiya.Lib.Logs;
 using Feodosiya.Lib.Math;
 using POFileManagerService.Configuration;
@@ -266,6 +267,11 @@ namespace POFileManagerService.Tasks {
             }
             finally {
                 ServiceHelper.IsRunning = false;
+                try {
+                    ServiceHelper.CreateMessage("Отправка сигнала о завершении выполнения задач", MessageType.Information);
+                    NamedPipeListener<string>.SendMessage("POFileManagerClient", "complete");
+                }
+                catch { }
             }
         }
 

@@ -1,17 +1,20 @@
-﻿using Feodosiya.Lib.IO;
+﻿#region Пространства имен
+using Feodosiya.Lib.IO.Pipes;
 using Feodosiya.Lib.Logs;
 using POFileManagerService.Tasks;
 using System;
 using System.ServiceProcess;
 using System.Threading;
+#endregion
 
 // HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WaitToKillServiceTimeout (ms)
 namespace POFileManagerService {
     public partial class MainService : ServiceBase {
         public MainService() {
             InitializeComponent();
-
+#if DEBUG
             Thread.Sleep(5000);
+#endif
 
             if (!(ServiceHelper.IsInitialized = ServiceHelper.PreInit(MainEventLog))) {
                 Stop();
@@ -30,10 +33,10 @@ namespace POFileManagerService {
                 return;
             }
 
+            ServiceHelper.CreateMessage("Инициализация планировщика...", MessageType.Information, true);
             ServiceHelper.MainTimer = new Timer(delegate (object s) {
                 TasksHelper.RunTasksThread();
             }, null, Timeout.Infinite, Timeout.Infinite);
-            ServiceHelper.CreateMessage("Инициализация планировщика...", MessageType.Information, true);
         }
 
         protected override void OnStart(string[] args) {
@@ -45,7 +48,7 @@ namespace POFileManagerService {
                 ServiceHelper.CreateMessage("Запуск планировщика...", MessageType.Information, true);
                 ServiceHelper.MainTimer.Change(0, Math.Max(ServiceHelper.MinimumMainTimerInterval, ServiceHelper.Configuration.TaskInterval));
                 ServiceHelper.CreateMessage("Инициализация и запуск именованного канала...", MessageType.Information, true);
-                ServiceHelper.NamedPipeListener = new NamedPipeListener<string>(ServiceHelper.ProductName);
+                ServiceHelper.NamedPipeListener = new NamedPipeListener<string>(ServiceHelper.ProductName, System.Security.Principal.WellKnownSidType.AuthenticatedUserSid);
                 ServiceHelper.NamedPipeListener.MessageReceived += delegate (object sender, NamedPipeListenerMessageReceivedEventArgs<string> e) {
                     switch (e.Message) {
                         case "force":
@@ -73,6 +76,11 @@ namespace POFileManagerService {
                         RequestAdditionalTime(2000);
                         Thread.Sleep(1000);
                     }
+                    try {
+                        ServiceHelper.CreateMessage("Отправка сигнала о завершении выполнения задач", MessageType.Information);
+                        NamedPipeListener<string>.SendMessage("POFileManagerClient", "complete");
+                    }
+                    catch { }
                     ServiceHelper.CreateMessage("Завершение работы службы...", MessageType.Information, true);
                 }
 

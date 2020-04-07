@@ -1,6 +1,7 @@
 ﻿#region Пространства имен
 using Feodosiya.Lib.Conf;
 using Feodosiya.Lib.IO;
+using Feodosiya.Lib.IO.Pipes;
 using Feodosiya.Lib.Logs;
 using Feodosiya.Lib.Security;
 using POFileManager.Configuration;

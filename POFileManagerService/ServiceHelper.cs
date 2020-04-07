@@ -1,6 +1,7 @@
 ﻿#region Пространства имен
 using Feodosiya.Lib.Conf;
 using Feodosiya.Lib.IO;
+using Feodosiya.Lib.IO.Pipes;
 using Feodosiya.Lib.Logs;
 using Feodosiya.Lib.Security;
 using POFileManagerService.Configuration;
@@ -206,7 +207,7 @@ namespace POFileManagerService {
         /// <returns></returns>
         public static bool InitConfiguration() {
             try {
-                string confPath = Path.Combine(CurrentDirectory, "settings.conf");
+                string confPath = Path.Combine(CurrentDirectory, ProductName + ".conf");
                 ConfHelper = new ConfHelper(confPath);
                 if (!File.Exists(confPath)) {
                     Global defConf = new Global();
@@ -234,27 +235,31 @@ namespace POFileManagerService {
         /// <returns></returns>
         public static bool InitEngine() {
             try {
-
+                #region Проверка сертификата для отправки почты
                 if (!SecurityHelper.CheckCertificateExists(StoreName.Root, StoreLocation.LocalMachine, Configuration.Mail.CertificateName)) {
                     CreateMessage("Сертификат почтового сервера не установлен. Необходимо выполнить установку сертификата и повторно запустить программу", MessageType.Error, true);
                     return false;
                 }
+                #endregion
 
-                // Инициализация параметров электронной почты
+                #region Инициализация параметров электронной почты
                 MailHelper.MailConfiguration = Configuration.Mail;
+                #endregion
 
-                // Инициализация параметров ftp сервера
+                #region Инициализация параметров ftp сервера
                 FtpHelper.FtpConfinguration = Configuration.Ftp;
+                #endregion
 
-                // Инициализация параметров SQL
+                #region Инициализация параметров SQL
                 if (!IOHelper.IsFullPath(Configuration.Sql.Database)) {
                     Configuration.Sql.Database = Path.Combine(CurrentDirectory, Configuration.Sql.Database);
                 }
                 SQLHelper.ConnectionString = string.Format("User={0};Password={1};Database={2};DataSource={3};Pooling=false;Connection lifetime=60;Charset=WIN1251;",
                     Configuration.Sql.Username, Configuration.Sql.Password,
                     Configuration.Sql.Database, Configuration.Sql.DataSource);
+                #endregion
 
-                // Проверка временных папок на их существование
+                #region Проверка и создание временных папок на их существование
                 TempPath = Path.Combine(CurrentDirectory, "Temp");
                 if (!Directory.Exists(TempPath)) {
                     Directory.CreateDirectory(TempPath);
@@ -271,8 +276,9 @@ namespace POFileManagerService {
                 if (!Directory.Exists(TempSqlPath)) {
                     Directory.CreateDirectory(TempSqlPath);
                 }
+                #endregion
 
-                // Проверка задач по обработке файлов
+                #region Проверка задач по обработке файлов
                 CreateMessage("Загрузка задач...", MessageType.Information, false);
                 StringBuilder errors = new StringBuilder();
                 foreach (Task task in Configuration.Tasks) {
@@ -283,6 +289,7 @@ namespace POFileManagerService {
                     }
                     if (!task.AllowDuplicate) {
                         try {
+                            // Проверка существования таблицы для хранения хеш сумм файлов
                             SQLHelper.CreateTableFingerprint(task.Name);
                         }
                         catch (Exception ex) {
@@ -295,7 +302,7 @@ namespace POFileManagerService {
                     }
                     catch (Exception ex) {
                         if (ex is FileNotFoundException || ex is DirectoryNotFoundException) {
-                            errors.AppendLine(string.Format("Путь '{0}' для задачи '{1}' не существует", task.Source, task.Name));
+                            CreateMessage(string.Format("Путь '{0}' для задачи '{1}' не существует", task.Source, task.Name), MessageType.Warning);
                             continue;
                         }
 
@@ -304,15 +311,19 @@ namespace POFileManagerService {
                 }
                 if (errors.Length > 0) {
                     CreateMessage("Ошибка при инициализации задач:\r\n" + errors.ToString(), MessageType.Error, true, true);
+                    return false;
                 }
+                #endregion
 
+                #region Проверка существования таблицы для хранения данных об обработанных файлах
                 try {
-                    // Проверка существования таблицы для хранения данных об обработанных файлах
                     SQLHelper.CreateTableOperationInfo();
                 }
                 catch (Exception ex) {
                     CreateMessage("Ошибка при инициализации программы:\r\n" + ex.ToString(), MessageType.Error, true, true);
+                    return false;
                 }
+                #endregion
 
                 return true;
             }

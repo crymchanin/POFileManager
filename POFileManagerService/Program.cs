@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿#region Пространства имен
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
+#endregion
+
 
 namespace POFileManagerService {
     static class Program {
