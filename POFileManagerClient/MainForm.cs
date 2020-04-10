@@ -77,8 +77,8 @@ namespace POFileManagerClient {
                 PingBox.Image = disabledImage;
                 PingLabel.Text = disabledText;
 
-                Pinger.CheckingInterval = AppHelper.Configuration.Pinger.TimerInterval;
-                Pinger.Timeout = AppHelper.Configuration.Pinger.PingTimeout;
+                Pinger.CheckingInterval = AppHelper.Configuration.Pinger.TimerInterval * 1000;
+                Pinger.Timeout = AppHelper.Configuration.Pinger.PingTimeout * 1000;
                 Pinger.Host = AppHelper.Configuration.Pinger.HostIP;
                 Pinger.PingerEvent += delegate (PingStatus status) {
                     try {

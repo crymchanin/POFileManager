@@ -21,8 +21,8 @@ namespace POFileManagerClient.Configuration {
         internal void OnSerializing(StreamingContext context) {
             Pinger = (Pinger == null) ? new Pinger() {
                 HostIP = "8.8.8.8",
-                PingTimeout = 1000,
-                TimerInterval = 5000
+                PingTimeout = 1,
+                TimerInterval = 5
             } : Pinger;
         }
     }

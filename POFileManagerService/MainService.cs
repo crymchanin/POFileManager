@@ -2,6 +2,7 @@
 using Feodosiya.Lib.IO.Pipes;
 using Feodosiya.Lib.Logs;
 using POFileManagerService.Tasks;
+using POFileManagerService.Updates;
 using System;
 using System.ServiceProcess;
 using System.Threading;
@@ -47,7 +48,7 @@ namespace POFileManagerService {
                 }
 
                 ServiceHelper.CreateMessage("Запуск планировщика...", MessageType.Information, true);
-                ServiceHelper.MainTimer.Change(0, Math.Max(ServiceHelper.MinimumMainTimerInterval, ServiceHelper.Configuration.TaskInterval));
+                ServiceHelper.MainTimer.Change(0, Math.Max(ServiceHelper.MinimumMainTimerInterval, ServiceHelper.Configuration.TaskInterval * 60 * 1000));
                 ServiceHelper.CreateMessage("Инициализация и запуск именованного канала...", MessageType.Debug);
                 ServiceHelper.NamedPipeListener = new NamedPipeListener<string>(ServiceHelper.ProductName, System.Security.Principal.WellKnownSidType.AuthenticatedUserSid);
                 ServiceHelper.NamedPipeListener.MessageReceived += delegate (object sender, NamedPipeListenerMessageReceivedEventArgs<string> e) {
@@ -63,6 +64,11 @@ namespace POFileManagerService {
                     ServiceHelper.CreateMessage(string.Format("Ошибка Pipe: ({0}): {1}", e.ErrorType, e.Exception.Message), MessageType.Error, true);
                 };
                 ServiceHelper.NamedPipeListener.Start();
+
+                ServiceHelper.CreateMessage("Проверка обновлений для службы автообновлений...", MessageType.Debug);
+                UpdateHelper.CheckUpdatesForUpdater();
+
+                UpdateHelper.CheckAndInstallConfigUpdate();
             }
             catch (Exception ex) {
                 ServiceHelper.CreateMessage("Ошибка при запуске службы:" + ex.ToString(), MessageType.Error, true);

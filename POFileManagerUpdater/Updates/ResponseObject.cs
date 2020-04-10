@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 
 
-namespace Updater.Updates {
+namespace POFileManagerUpdater.Updates {
     [DataContract]
     public class ResponseObject {
         [DataMember]

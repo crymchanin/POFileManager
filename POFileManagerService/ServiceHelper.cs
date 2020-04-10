@@ -57,6 +57,7 @@ namespace POFileManagerService {
         /// </summary>
         public static volatile bool IsRunning = false;
 
+
         /// <summary>
         /// Временная папка программы
         /// </summary>
@@ -199,7 +200,7 @@ namespace POFileManagerService {
                 return true;
             }
             catch (Exception ex) {
-                CreateMessage("Программе обмена не удается выполнить запуск. Обратитесь в ГИТ. Текст ошибки:\r\n" + ex.ToString(), MessageType.Error, true);
+                CreateMessage("Программе обмена не удается выполнить запуск. Текст ошибки:\r\n" + ex.ToString(), MessageType.Error, true);
                 return false;
             }
         }

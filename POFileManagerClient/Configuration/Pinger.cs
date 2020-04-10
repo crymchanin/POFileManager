@@ -8,13 +8,13 @@ namespace POFileManagerClient.Configuration {
     [DataContract]
     public class Pinger {
         /// <summary>
-        /// Периодичность проверки доступности хоста в миллисекундах
+        /// Периодичность проверки доступности хоста в секундах
         /// </summary>
         [DataMember]
         public int TimerInterval { get; set; }
 
         /// <summary>
-        /// Максимальное время (после отправки сообщения проверки связи) ожидания сообщения ответа проверки связи ICMP в миллисекундах
+        /// Максимальное время (после отправки сообщения проверки связи) ожидания сообщения ответа проверки связи ICMP в секундах
         /// </summary>
         [DataMember]
         public int PingTimeout { get; set; }

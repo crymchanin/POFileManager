@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Reflection;
 using System.Runtime.Serialization.Json;
+using System.ServiceProcess;
 using System.Text;
 
 
-namespace Updater.Updates {
+namespace POFileManagerUpdater.Updates {
     public static class UpdatesHelper {
 
         /// <summary>
@@ -69,7 +71,6 @@ namespace Updater.Updates {
             }
         }
 
-
         /// <summary>
         /// Выполняет установку полученного обновления
         /// </summary>
@@ -90,6 +91,72 @@ namespace Updater.Updates {
                     }
                     catch { }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Выполняет загрузку и установку обновления
+        /// </summary>
+        public static void RunUpdate() {
+            try {
+                if (ServiceHelper.IsRunning) {
+                    return;
+                }
+                ServiceHelper.IsRunning = true;
+
+                try {
+                    string file = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), ServiceHelper.Configuration.ProductName + ".pkg");
+                    if (File.Exists(file)) {
+                        File.Delete(file);
+                    }
+                }
+                catch { }
+
+                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(Path.Combine(ServiceHelper.CurrentDirectory, ServiceHelper.Configuration.ProductName + ".exe"));
+                if (!CheckUpdates(fileVersionInfo.FileVersion, ServiceHelper.Configuration.UpdateServer, ServiceHelper.Configuration.ProductName)) {
+                    return;
+                }
+
+                ServiceHelper.CreateMessage("Выполняется: Остановка запущенной службы " + ServiceHelper.Configuration.ProductName + "...", ServiceHelper.MessageType.Information);
+                ServiceController sc = new ServiceController();
+                sc.ServiceName = ServiceHelper.Configuration.ProductName;
+                if (sc.Status == ServiceControllerStatus.Running) {
+                    sc.Stop();
+                }
+                else if (sc.Status == ServiceControllerStatus.StartPending) {
+                    sc.WaitForStatus(ServiceControllerStatus.Running);
+                    sc.Stop();
+                }
+                ServiceHelper.CreateMessage("Выполняется: Остановка запущенного клиента " + ServiceHelper.Configuration.ClientName + "...", ServiceHelper.MessageType.Information);
+                ProcessStartInfo processStartInfo = new ProcessStartInfo();
+                processStartInfo.Arguments = string.Format("/F /IM {0}.exe", ServiceHelper.Configuration.ClientName);
+                processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                processStartInfo.CreateNoWindow = true;
+                processStartInfo.FileName = "taskkill.exe";
+                Process.Start(processStartInfo).WaitForExit();
+
+                ServiceHelper.CreateMessage("Выполняется: Загрузка обновлений...", ServiceHelper.MessageType.Information);
+                string fileName = DownloadPackage(ServiceHelper.Configuration.UpdateServer, ServiceHelper.Configuration.ProductName);
+
+                ServiceHelper.CreateMessage("Выполняется: Установка обновлений...", ServiceHelper.MessageType.Information);
+                InstallUpdate(fileName);
+
+                ServiceHelper.CreateMessage("Установка обновлений выполнена!", ServiceHelper.MessageType.Information);
+                if (sc.Status == ServiceControllerStatus.Stopped) {
+                    sc.Start();
+                }
+                else if (sc.Status == ServiceControllerStatus.StopPending) {
+                    sc.WaitForStatus(ServiceControllerStatus.Stopped);
+                    sc.Start();
+                }
+
+                File.Delete(fileName);
+            }
+            catch (Exception error) {
+                ServiceHelper.CreateMessage("Ошибка при выполнении обновления. Текст ошибки:\r\n" + error.ToString(), ServiceHelper.MessageType.Error);
+            }
+            finally {
+                ServiceHelper.IsRunning = false;
             }
         }
     }

@@ -23,10 +23,23 @@
         /// содержимое этого метода с помощью редактора кода.
         /// </summary>
         private void InitializeComponent() {
-            components = new System.ComponentModel.Container();
+            this.MainEventLog = new System.Diagnostics.EventLog();
+            ((System.ComponentModel.ISupportInitialize)(this.MainEventLog)).BeginInit();
+            // 
+            // MainEventLog
+            // 
+            this.MainEventLog.Log = "Application";
+            this.MainEventLog.Source = "POFileManagerUpdater";
+            // 
+            // MainService
+            // 
             this.ServiceName = "Service1";
+            ((System.ComponentModel.ISupportInitialize)(this.MainEventLog)).EndInit();
+
         }
 
         #endregion
+
+        private System.Diagnostics.EventLog MainEventLog;
     }
 }
