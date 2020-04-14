@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppHelper.cs" />
-    <Compile Include="PostItemFileCondition.cs" />
+    <Compile Include="FileCondition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

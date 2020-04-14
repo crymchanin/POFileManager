@@ -128,7 +128,7 @@ namespace POFileManagerClient {
                 Version = fileVersionInfo.FileVersion;
 
                 Log = new Log(Path.Combine(CurrentDirectory, ProductName + ".log")) { InsertDate = true, AutoCompress = true };
-                Log.ExceptionThrownEvent += (e) => CreateMessage(e.ToString(), MessageType.Error, true);
+                Log.ExceptionThrownEvent += (e) => MessageBox.Show(e.ToString(), "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 return true;
             }

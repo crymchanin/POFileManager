@@ -11,7 +11,7 @@ using POFileManagerService.Tasks;
 
 namespace POFileManagerTask
 {
-    public class PostItemFileCondition : IFileCondition {
+    public class FileCondition : IFileCondition {
         public string ErrorString { get; set; }
 
         public bool HasError { get; set; }

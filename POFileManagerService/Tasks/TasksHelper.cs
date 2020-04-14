@@ -114,7 +114,7 @@ namespace POFileManagerService.Tasks {
                                         if (!string.IsNullOrWhiteSpace(task.ExternalLib) && task.ExternalLibAsm != null) {
                                             ServiceHelper.CreateMessage(string.Format("Выполняется проверка дополнительных условий для файла '{0}'...", filename), MessageType.Debug);
 
-                                            Type type = task.ExternalLibAsm.GetType("Tasks.FileCondition");
+                                            Type type = task.ExternalLibAsm.GetType("POFileManagerTask.FileCondition");
                                             IFileCondition condition = (IFileCondition)Activator.CreateInstance(type);
                                             if (task.ExternalLibParams.ContainsKey("filename")) {
                                                 task.ExternalLibParams.Remove("filename");
@@ -206,7 +206,7 @@ namespace POFileManagerService.Tasks {
                                     if (!string.IsNullOrWhiteSpace(task.ExternalLib) && task.ExternalLibAsm != null) {
                                         ServiceHelper.CreateMessage(string.Format("Выполняется проверка дополнительных условий для файла '{0}'...", filename), MessageType.Debug);
 
-                                        Type type = task.ExternalLibAsm.GetType("Tasks.FileCondition");
+                                        Type type = task.ExternalLibAsm.GetType("POFileManagerTask.FileCondition");
                                         IFileCondition condition = (IFileCondition)Activator.CreateInstance(type);
                                         if (task.ExternalLibParams.ContainsKey("filename")) {
                                             task.ExternalLibParams.Remove("filename");
