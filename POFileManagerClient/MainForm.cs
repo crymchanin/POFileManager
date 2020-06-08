@@ -4,6 +4,7 @@ using Feodosiya.Lib.Logs;
 using Feodosiya.Lib.Threading;
 using System;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 #endregion
 
@@ -119,7 +120,17 @@ namespace POFileManagerClient {
             try {
                 AppHelper.CreateMessage("Запущена ручная выгрузка файлов", MessageType.Information);
                 ForceRunButton.Enabled = false;
-                NamedPipeListener<string>.SendMessage("POFileManagerService", "force");
+                Thread thread = new Thread(delegate() {
+                    try {
+                        NamedPipeListener<string>.SendMessage("POFileManagerService", "force");
+                        this.InvokeIfRequired(() => AppHelper.CreateMessage("Файлы успешно выгружены!", MessageType.Information, true));
+                    }
+                    catch(Exception ex) {
+                        ForceRunButton.InvokeIfRequired(() => ForceRunButton.Enabled = true);
+                        this.InvokeIfRequired(() => AppHelper.CreateMessage("Ошибка при выгрузке файлов:\r\n" + ex.ToString(), MessageType.Error, true));
+                    }
+                });
+                thread.Start();
             }
             catch (Exception ex) {
                 ForceRunButton.Enabled = true;
