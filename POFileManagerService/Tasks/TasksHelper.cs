@@ -72,7 +72,9 @@ namespace POFileManagerService.Tasks {
 
                             // Выбираем файлы имя которых строго соответствует регулярному выражению
                             if (regEx.IsMatch(filename)) {
-                                ServiceHelper.CreateMessage(string.Format("Файл '{0}' прошел проверку регулярным выражением", filename), MessageType.Debug);
+                                if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                    ServiceHelper.CreateMessage(string.Format("Файл '{0}' прошел проверку регулярным выражением", filename), MessageType.Debug);
+                                }
 
                                 // Создаем временную папку для копирования/перемещения файлов если она не существует
                                 string newDir = Path.Combine(ServiceHelper.TempTasksPath, task.Name);
@@ -85,23 +87,31 @@ namespace POFileManagerService.Tasks {
                                 try {
                                     // Интервал в днях, за который будет выполнена обработка файлов
                                     if (task.DayInterval > 0) {
-                                        ServiceHelper.CreateMessage(string.Format("Выполняется проверка даты изменения файла '{0}'", filename), MessageType.Debug);
+                                        if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                            ServiceHelper.CreateMessage(string.Format("Выполняется проверка даты изменения файла '{0}'", filename), MessageType.Debug);
+                                        }
                                         DateTime date = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
                                         date = date.AddDays(task.DayInterval.ToNegative());
                                         FileInfo info = new FileInfo(file);
                                         if (info.LastWriteTime < date) {
-                                            ServiceHelper.CreateMessage(string.Format("Файл {0} не будет обработан из за сроков его давности", filename), MessageType.Debug);
+                                            if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                                ServiceHelper.CreateMessage(string.Format("Файл {0} не будет обработан из за сроков его давности", filename), MessageType.Debug);
+                                            }
                                             continue;
                                         }
                                     }
 
                                     // Разрешить повторную отправку файлов, если задано
                                     if (!task.AllowDuplicate) {
-                                        ServiceHelper.CreateMessage(string.Format("Проверка файла '{0}' на факт предыдущей его отправки", filename), MessageType.Debug);
+                                        if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                            ServiceHelper.CreateMessage(string.Format("Проверка файла '{0}' на факт предыдущей его отправки", filename), MessageType.Debug);
+                                        }
                                         // Проверяем файл на факт отправки ранее
                                         bool fileExists = SQLHelper.CheckForDuplicate(task.Name, file);
                                         if (fileExists) {
-                                            ServiceHelper.CreateMessage(string.Format("Файл '{0}' не будет обработан, так как он был уже ранее отправлен", filename), MessageType.Debug);
+                                            if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                                ServiceHelper.CreateMessage(string.Format("Файл '{0}' не будет обработан, так как он был уже ранее отправлен", filename), MessageType.Debug);
+                                            }
                                             continue;
                                         }
 
@@ -112,7 +122,9 @@ namespace POFileManagerService.Tasks {
                                     // Внешняя библиотека для дополнительных условий обработки файлов
                                     try {
                                         if (!string.IsNullOrWhiteSpace(task.ExternalLib) && task.ExternalLibAsm != null) {
-                                            ServiceHelper.CreateMessage(string.Format("Выполняется проверка дополнительных условий для файла '{0}'...", filename), MessageType.Debug);
+                                            if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                                ServiceHelper.CreateMessage(string.Format("Выполняется проверка дополнительных условий для файла '{0}'...", filename), MessageType.Debug);
+                                            }
 
                                             Type type = task.ExternalLibAsm.GetType("POFileManagerTask.FileCondition");
                                             IFileCondition condition = (IFileCondition)Activator.CreateInstance(type);
@@ -166,7 +178,9 @@ namespace POFileManagerService.Tasks {
 
                         // Проверяем соответствие имени файла регулярному выражению
                         if (regEx.IsMatch(filename)) {
-                            ServiceHelper.CreateMessage(string.Format("Файл '{0}' прошел проверку регулярным выражением", filename), MessageType.Debug);
+                            if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                ServiceHelper.CreateMessage(string.Format("Файл '{0}' прошел проверку регулярным выражением", filename), MessageType.Debug);
+                            }
 
                             // Создаем временную папку для копирования/перемещения файлов если она не существует
                             string newDir = Path.Combine(ServiceHelper.TempTasksPath, task.Name);
@@ -179,22 +193,30 @@ namespace POFileManagerService.Tasks {
                             try {
                                 // Интервал в днях, за который будет выполнена обработка файлов
                                 if (task.DayInterval > 0) {
-                                    ServiceHelper.CreateMessage(string.Format("Выполняется проверка даты изменения файла '{0}'", filename), MessageType.Debug);
+                                    if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                        ServiceHelper.CreateMessage(string.Format("Выполняется проверка даты изменения файла '{0}'", filename), MessageType.Debug);
+                                    }
                                     DateTime date = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
                                     date = date.AddDays(task.DayInterval.ToNegative());
                                     FileInfo info = new FileInfo(task.Source);
                                     if (info.LastWriteTime < date) {
-                                        ServiceHelper.CreateMessage(string.Format("Файл {0} не будет обработан из за сроков его давности", filename), MessageType.Debug);
+                                        if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                            ServiceHelper.CreateMessage(string.Format("Файл {0} не будет обработан из за сроков его давности", filename), MessageType.Debug);
+                                        }
                                         continue;
                                     }
                                 }
 
                                 // Разрешить повторную отправку файлов, если задано
                                 if (!task.AllowDuplicate) {
-                                    ServiceHelper.CreateMessage(string.Format("Проверка файла '{0}' на факт предыдущей его отправки", filename), MessageType.Debug);
+                                    if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                        ServiceHelper.CreateMessage(string.Format("Проверка файла '{0}' на факт предыдущей его отправки", filename), MessageType.Debug);
+                                    }
                                     bool fileExists = SQLHelper.CheckForDuplicate(task.Name, task.Source);
                                     if (fileExists) {
-                                        ServiceHelper.CreateMessage(string.Format("Файл '{0}' не будет обработан, так как он был уже ранее отправлен", filename), MessageType.Debug);
+                                        if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                            ServiceHelper.CreateMessage(string.Format("Файл '{0}' не будет обработан, так как он был уже ранее отправлен", filename), MessageType.Debug);
+                                        }
                                         continue;
                                     }
 
@@ -204,7 +226,9 @@ namespace POFileManagerService.Tasks {
                                 // Внешняя библиотека для дополнительных условий обработки файлов
                                 try {
                                     if (!string.IsNullOrWhiteSpace(task.ExternalLib) && task.ExternalLibAsm != null) {
-                                        ServiceHelper.CreateMessage(string.Format("Выполняется проверка дополнительных условий для файла '{0}'...", filename), MessageType.Debug);
+                                        if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                                            ServiceHelper.CreateMessage(string.Format("Выполняется проверка дополнительных условий для файла '{0}'...", filename), MessageType.Debug);
+                                        }
 
                                         Type type = task.ExternalLibAsm.GetType("POFileManagerTask.FileCondition");
                                         IFileCondition condition = (IFileCondition)Activator.CreateInstance(type);
@@ -289,9 +313,11 @@ namespace POFileManagerService.Tasks {
                 string zipName = Path.Combine(ServiceHelper.TempFtpPath, string.Format("{0}_{1}.zip", ServiceHelper.Configuration.ZipCode, DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss")));
                 fInfos = FtpHelper.PackFiles(ServiceHelper.TempTasksPath, zipName);
                 if (fInfos != null) {
-                    foreach (FileOperationInfo fInfo in fInfos) {
-                        ServiceHelper.CreateMessage(string.Format("Упакован файл {0} из задачи {1} в {2}", fInfo.FileName, fInfo.TaskName, fInfo.OperationDate),
-                            MessageType.Debug);
+                    if (ServiceHelper.Configuration.DebuggingLevel >= 2) {
+                        foreach (FileOperationInfo fInfo in fInfos) {
+                            ServiceHelper.CreateMessage(string.Format("Упакован файл {0} из задачи {1} в {2}", fInfo.FileName, fInfo.TaskName, fInfo.OperationDate),
+                                MessageType.Debug);
+                        }
                     }
 
                     ServiceHelper.CreateMessage("Отправка архива на FTP...", MessageType.Debug);

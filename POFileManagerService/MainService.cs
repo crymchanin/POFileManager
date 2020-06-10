@@ -17,35 +17,28 @@ namespace POFileManagerService {
             #if DEBUG
                 Thread.Sleep(5000);
             #endif
-
-            if (!(ServiceHelper.IsInitialized = ServiceHelper.PreInit(MainEventLog))) {
-                Stop();
-                return;
-            }
-
-            ServiceHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Debug);
-            if (!(ServiceHelper.IsInitialized = ServiceHelper.InitConfiguration())) {
-                Stop();
-                return;
-            }
-
-            ServiceHelper.CreateMessage("Инициализация основных параметров...", MessageType.Debug);
-            if (!(ServiceHelper.IsInitialized = ServiceHelper.InitEngine())) {
-                Stop();
-                return;
-            }
-
-            ServiceHelper.CreateMessage("Инициализация планировщика...", MessageType.Debug);
-            ServiceHelper.MainTimer = new Timer(delegate (object s) {
-                TasksHelper.RunTasksThread();
-            }, null, Timeout.Infinite, Timeout.Infinite);
         }
 
         protected override void OnStart(string[] args) {
             try {
-                if (!ServiceHelper.IsInitialized) {
+                if (!(ServiceHelper.IsInitialized = ServiceHelper.PreInit(MainEventLog))) {
                     return;
                 }
+
+                ServiceHelper.CreateMessage("Инициализация конфигурации приложения...", MessageType.Debug);
+                if (!(ServiceHelper.IsInitialized = ServiceHelper.InitConfiguration())) {
+                    return;
+                }
+
+                ServiceHelper.CreateMessage("Инициализация основных параметров...", MessageType.Debug);
+                if (!(ServiceHelper.IsInitialized = ServiceHelper.InitEngine())) {
+                    return;
+                }
+
+                ServiceHelper.CreateMessage("Инициализация планировщика...", MessageType.Debug);
+                ServiceHelper.MainTimer = new Timer(delegate (object s) {
+                    TasksHelper.RunTasksThread();
+                }, null, Timeout.Infinite, Timeout.Infinite);
 
                 ServiceHelper.CreateMessage("Запуск планировщика...", MessageType.Information, true);
                 ServiceHelper.MainTimer.Change(0, Math.Max(ServiceHelper.MinimumMainTimerInterval, ServiceHelper.Configuration.TaskInterval * 60 * 1000));

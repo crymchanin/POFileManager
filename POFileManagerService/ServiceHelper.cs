@@ -258,9 +258,10 @@ namespace POFileManagerService {
                 if (!IOHelper.IsFullPath(Configuration.Sql.Database)) {
                     Configuration.Sql.Database = Path.Combine(CurrentDirectory, Configuration.Sql.Database);
                 }
-                SQLHelper.ConnectionString = string.Format("User={0};Password={1};Database={2};DataSource={3};Pooling=false;Connection lifetime=60;Charset=WIN1251;",
+                SQLHelper.ConnectionString = string.Format("User={0};Password={1};Database={2};DataSource={3};Pooling={4};Connection lifetime={5};Charset=WIN1251;",
                     Configuration.Sql.Username, Configuration.Sql.Password,
-                    Configuration.Sql.Database, Configuration.Sql.DataSource);
+                    Configuration.Sql.Database, Configuration.Sql.DataSource,
+                    Configuration.Sql.Pooling.ToString().ToLower(), Configuration.Sql.ConnectionLifetime);
                 #endregion
 
                 #region Проверка и создание временных папок на их существование
@@ -315,7 +316,7 @@ namespace POFileManagerService {
                 }
                 if (errors.Length > 0) {
                     CreateMessage("Ошибка при инициализации задач:\r\n" + errors.ToString(), MessageType.Error, true, true);
-                    return false;
+                    //return false;
                 }
                 #endregion
 
@@ -325,7 +326,7 @@ namespace POFileManagerService {
                 }
                 catch (Exception ex) {
                     CreateMessage("Ошибка при инициализации программы:\r\n" + ex.ToString(), MessageType.Error, true, true);
-                    return false;
+                    //return false;
                 }
                 #endregion
 

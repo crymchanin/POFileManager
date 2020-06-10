@@ -61,6 +61,12 @@ namespace POFileManagerService.Configuration {
         [DataMember]
         public bool DebuggingEnabled { get; set; }
 
+        /// <summary>
+        /// Детальность отладки
+        /// </summary>
+        [DataMember]
+        public int DebuggingLevel { get; set; }
+
         [OnSerializing()]
         internal void OnSerializing(StreamingContext context) {
             Ftp = (Ftp == null) ? new Ftp() {
@@ -74,7 +80,9 @@ namespace POFileManagerService.Configuration {
                 Database = "POFILEMANAGER.IB",
                 DataSource = "localhost",
                 Username = "SYSDBA",
-                Password = "masterkey"
+                Password = "masterkey",
+                Pooling = false,
+                ConnectionLifetime = 20
             } : Sql;
             Mail = (Mail == null) ? new Mail() {
                 Host = "cas.crimeanpost.ru",
@@ -90,6 +98,7 @@ namespace POFileManagerService.Configuration {
             Tasks = (Tasks == null) ? new List<Task>() : Tasks;
             ZipCode = (ZipCode == 0) ? 298100 : ZipCode;
             UpdaterServiceName = (string.IsNullOrEmpty(UpdaterServiceName)) ? "POFileManagerUpdater" : UpdaterServiceName;
+            DebuggingLevel = (DebuggingLevel <= 0) ? 1 : DebuggingLevel;
         }
     }
 }
