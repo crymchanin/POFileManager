@@ -36,8 +36,10 @@ namespace POFileManagerUpdater {
                     return;
                 }
 
-                ServiceHelper.CreateMessage("Запуск планировщика...", ServiceHelper.MessageType.Information);
-                ServiceHelper.MainTimer.Change(0, Math.Max(ServiceHelper.MinimumMainTimerInterval, ServiceHelper.Configuration.UpdateCheckInterval * 60 * 1000));
+                if (ServiceHelper.Configuration.CheckUpdates) {
+                    ServiceHelper.CreateMessage("Запуск планировщика...", ServiceHelper.MessageType.Information);
+                    ServiceHelper.MainTimer.Change(0, Math.Max(ServiceHelper.MinimumMainTimerInterval, ServiceHelper.Configuration.UpdateCheckInterval * 60 * 1000));
+                }
             }
             catch (Exception ex) {
                 ServiceHelper.CreateMessage("Ошибка при запуске службы:" + ex.ToString(), ServiceHelper.MessageType.Error);
@@ -56,7 +58,7 @@ namespace POFileManagerUpdater {
                     ServiceHelper.CreateMessage("Завершение работы службы...", ServiceHelper.MessageType.Information);
                 }
 
-                if (ServiceHelper.MainTimer != null) {
+                if (ServiceHelper.MainTimer != null && ServiceHelper.Configuration.CheckUpdates) {
                     ServiceHelper.CreateMessage("Остановка планировщика...", ServiceHelper.MessageType.Information);
                     ServiceHelper.MainTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 }

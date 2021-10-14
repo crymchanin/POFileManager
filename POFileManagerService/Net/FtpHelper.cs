@@ -112,7 +112,7 @@ namespace POFileManagerService.Net {
         /// </summary>
         /// <param name="zipPath">Имя архива</param>
         /// <param name="zipCode">Индекс текущего отделения</param>
-        /// <param name="exception">Содержит информацию о произошедшей ошибке во вермя загрузки архива. При успешном выполнении загрузки имеет значение null</param>
+        /// <param name="exception">Содержит информацию о произошедшей ошибке во время загрузки архива. При успешном выполнении загрузки имеет значение null</param>
         public static bool UploadArchive(string zipPath, int zipCode, out Exception exception) {
             try {
                 using (FtpClient client = new FtpClient(FtpConfinguration.Host, FtpConfinguration.Port,
@@ -130,6 +130,7 @@ namespace POFileManagerService.Net {
                     }
                     else {
                         exception = new Exception("Не удалось отправить zip архив");
+                        return false;
                     }
 
                     return true;
@@ -145,12 +146,47 @@ namespace POFileManagerService.Net {
         /// Возвращает список архивов, которые расположеных во временной папке программы и не были обработаны ранее
         /// </summary>
         /// <param name="srcPath">Путь к временной папке программы</param>
+        /// <param name="exception">Содержит информацию о произошедшей ошибке во время поиска не отправленных архивов. При успешном выполнении загрузки имеет значение null</param>
         /// <returns></returns>
-        public static List<string> GetSkippedZipFiles(string srcPath) {
+        public static List<string> GetSkippedZipFiles(string srcPath, out Exception exception) {
             Regex regEx = new Regex(@"^\d{6}_\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}$");
-
-            return Directory.EnumerateFiles(srcPath, "*.zip", SearchOption.TopDirectoryOnly)
+            List<string> result = new List<string>();
+            try {
+                result = Directory.EnumerateFiles(srcPath, "*.zip", SearchOption.TopDirectoryOnly)
                     .Where(s => regEx.IsMatch(Path.GetFileNameWithoutExtension(s))).ToList();
+
+                exception = null;
+            }
+            catch(Exception ex) {
+                exception = ex;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Проверяет наличие ошибок в архиве
+        /// </summary>
+        /// <param name="path">Путь к архиву</param>
+        /// <returns></returns>
+        public static bool TestArchive(string path) {
+            bool result;
+
+            try {
+                using (ZipFile zip = new ZipFile(path)) {
+                    result = zip.TestArchive(true, TestStrategy.FindFirstError, (TestStatus ts, string msg) => {
+                        if (msg != null) {
+                            ServiceHelper.CreateMessage($"Ошибка в архиве '{path}': " + msg, Feodosiya.Lib.Logs.MessageType.Error, true);
+                        }
+                    });
+                }
+            }
+            catch (Exception ex) {
+                result = false;
+                ServiceHelper.CreateMessage($"Ошибка при проверке целостности архива '{path}': " + ex.ToString(), Feodosiya.Lib.Logs.MessageType.Error, true);
+            }
+
+            return result;
         }
     }
 }

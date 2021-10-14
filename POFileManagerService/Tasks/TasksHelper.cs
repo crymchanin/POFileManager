@@ -283,29 +283,45 @@ namespace POFileManagerService.Tasks {
 
                 Exception uploadEx = null;
                 FileOperationInfo[] fInfos;
-                // Проверяем наличие неотправленных архивов во временной папке и отправляем их
-                try {
-                    ServiceHelper.CreateMessage("Поиск ранее не отправленных архивов...", MessageType.Debug);
-                    List<string> zipArchives = FtpHelper.GetSkippedZipFiles(ServiceHelper.TempFtpPath);
-                    if (zipArchives.Count > 0) {
-                        ServiceHelper.CreateMessage("Найдены ранее не отправленные архивы. Попытка повторной отправки...", MessageType.Debug);
-                        foreach (string zipArchive in zipArchives) {
-                            fInfos = FtpHelper.GetFilesOperationInfoFromZip(zipArchive).ToArray();
-                            bool flag = FtpHelper.UploadArchive(zipArchive, ServiceHelper.Configuration.ZipCode, out uploadEx);
+                // Проверяем наличие не отправленных архивов во временной папке и отправляем их
+                ServiceHelper.CreateMessage("Поиск ранее не отправленных архивов...", MessageType.Debug);
+                List<string> zipArchives = FtpHelper.GetSkippedZipFiles(ServiceHelper.TempFtpPath, out uploadEx);
+                if (zipArchives.Count > 0) {
+                    ServiceHelper.CreateMessage("Найдены ранее не отправленные архивы. Попытка повторной отправки...", MessageType.Debug);
+                    int errorCount = 0;
+                    foreach (string zipArchive in zipArchives) {
+                        bool flag = FtpHelper.TestArchive(zipArchive);
+                        if (flag) {
+                            flag = FtpHelper.UploadArchive(zipArchive, ServiceHelper.Configuration.ZipCode, out uploadEx);
                             if (flag) {
-                                SQLHelper.WriteFileOperationInfo(fInfos);
+                                try {
+                                    fInfos = FtpHelper.GetFilesOperationInfoFromZip(zipArchive).ToArray();
+                                    SQLHelper.WriteFileOperationInfo(fInfos);
+                                }
+                                catch(Exception ex) {
+                                    ServiceHelper.CreateMessage("Ошибка при записи информации об отправленных файлах в БД: " + ex.ToString(), MessageType.Error, true);
+                                }
                             }
-                            if (uploadEx != null) {
-                                ServiceHelper.CreateMessage("Ошибка при повторной отправке архива: " + uploadEx.ToString(), MessageType.Error, true);
+                            else {
+                                errorCount++;
                             }
                         }
-                        if (uploadEx == null) {
-                            ServiceHelper.CreateMessage("Архивы отправлены", MessageType.Debug);
+                        else {
+                            errorCount++;
+                        }
+                        if (uploadEx != null) {
+                            ServiceHelper.CreateMessage($"Ошибка при повторной отправке архива '{zipArchive}': " + uploadEx.ToString(), MessageType.Error, true);
                         }
                     }
+                    ServiceHelper.CreateMessage((errorCount > 0) ? $"{errorCount} архивов не было отправлено" : "Все архивы отправлены", MessageType.Debug);
                 }
-                catch (Exception ex) {
-                    ServiceHelper.CreateMessage("Ошибка при повторной отправке архива: " + ex.ToString(), MessageType.Error, true);
+                else {
+                    if (uploadEx != null) {
+                        ServiceHelper.CreateMessage("Ошибка при поиске архивов: " + uploadEx.ToString(), MessageType.Error, true, true);
+                    }
+                    else {
+                        ServiceHelper.CreateMessage("Архивов ожидающих отправки не найдено", MessageType.Debug);
+                    }
                 }
 
                 // Запаковываем файлы в архив

@@ -50,10 +50,10 @@ namespace POFileManagerService.Configuration {
         public int ZipCode { get; set; }
 
         /// <summary>
-        /// Имя службы автообновлений
+        /// Параметры системы автообновлений
         /// </summary>
         [DataMember]
-        public string UpdaterServiceName { get; set; }
+        public Updates Updates { get; set; }
 
         /// <summary>
         /// Включение\отключение режима отладки
@@ -93,11 +93,11 @@ namespace POFileManagerService.Configuration {
                 ToRecipient = "git.feo@crimeanpost.ru"
             } : Mail;
             int minTaskInterval = 5;
-            TaskInterval = (TaskInterval == 0) ? minTaskInterval : TaskInterval;
-            AdditionalTime = (AdditionalTime == 0) ? 30 : Math.Max(30, AdditionalTime);
+            TaskInterval = (TaskInterval <= 0) ? minTaskInterval : TaskInterval;
+            AdditionalTime = (AdditionalTime <= 0) ? 30 : Math.Max(30, AdditionalTime);
             Tasks = (Tasks == null) ? new List<Task>() : Tasks;
             ZipCode = (ZipCode == 0) ? 298100 : ZipCode;
-            UpdaterServiceName = (string.IsNullOrEmpty(UpdaterServiceName)) ? "POFileManagerUpdater" : UpdaterServiceName;
+            Updates.UpdaterServiceName = (string.IsNullOrEmpty(Updates.UpdaterServiceName)) ? "POFileManagerUpdater" : Updates.UpdaterServiceName;
             DebuggingLevel = (DebuggingLevel <= 0) ? 1 : DebuggingLevel;
         }
     }

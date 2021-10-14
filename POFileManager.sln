@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POFileManagerUpdater", "POF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POFileManagerTask", "POFileManagerTask\POFileManagerTask.csproj", "{9654BF96-4DEC-44A6-89D4-7FDD430F6F9E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feodosiya.Lib", "..\Feodosiya.Lib\Feodosiya.Lib\Feodosiya.Lib.csproj", "{D3ADC41D-D61D-4485-8661-508FA998ACC5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,14 @@ Global
 		{9654BF96-4DEC-44A6-89D4-7FDD430F6F9E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9654BF96-4DEC-44A6-89D4-7FDD430F6F9E}.Release|x86.ActiveCfg = Release|Any CPU
 		{9654BF96-4DEC-44A6-89D4-7FDD430F6F9E}.Release|x86.Build.0 = Release|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Debug|x86.Build.0 = Debug|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Release|x86.ActiveCfg = Release|Any CPU
+		{D3ADC41D-D61D-4485-8661-508FA998ACC5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

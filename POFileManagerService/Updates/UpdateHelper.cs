@@ -42,15 +42,15 @@ namespace POFileManagerService.Updates {
         /// </summary>
         public static void CheckUpdatesForUpdater() {
             try {
-                string fileName = Path.Combine(ServiceHelper.CurrentDirectory, ServiceHelper.Configuration.UpdaterServiceName + ".pkg");
+                string fileName = Path.Combine(ServiceHelper.CurrentDirectory, ServiceHelper.Configuration.Updates.UpdaterServiceName + ".pkg");
                 if (!File.Exists(fileName)) {
                     return;
                 }
 
                 ServiceHelper.CreateMessage("Установка обновлений для службы автообновлений...", MessageType.Debug);
-                ServiceHelper.CreateMessage("Выполняется: Остановка запущенной службы " + ServiceHelper.Configuration.UpdaterServiceName + "...", MessageType.Information);
+                ServiceHelper.CreateMessage("Выполняется: Остановка запущенной службы " + ServiceHelper.Configuration.Updates.UpdaterServiceName + "...", MessageType.Information);
                 ServiceController sc = new ServiceController();
-                sc.ServiceName = ServiceHelper.Configuration.UpdaterServiceName;
+                sc.ServiceName = ServiceHelper.Configuration.Updates.UpdaterServiceName;
                 if (sc.Status == ServiceControllerStatus.Running) {
                     sc.Stop();
                 }

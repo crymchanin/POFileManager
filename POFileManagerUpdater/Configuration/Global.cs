@@ -6,6 +6,9 @@ namespace POFileManagerUpdater.Configuration {
     [DataContract]
     public class Global {
         [DataMember]
+        public bool CheckUpdates { get; set; }
+
+        [DataMember]
         public string ProductName { get; set; }
 
         [DataMember]
@@ -23,8 +26,8 @@ namespace POFileManagerUpdater.Configuration {
         [OnSerializing()]
         internal void OnSerializing(StreamingContext context) {
             int minTaskInterval = 5;
-            UpdateCheckInterval = (UpdateCheckInterval == 0) ? minTaskInterval : UpdateCheckInterval;
-            AdditionalTime = (AdditionalTime == 0) ? 30 : Math.Max(30, AdditionalTime);
+            UpdateCheckInterval = (UpdateCheckInterval <= 0) ? minTaskInterval : UpdateCheckInterval;
+            AdditionalTime = (AdditionalTime <= 0) ? 30 : Math.Max(30, AdditionalTime);
         }
     }
 }

@@ -33,9 +33,6 @@
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Feodosiya.Lib">
-      <HintPath>..\Feodosiya.Lib.dll</HintPath>
-    </Reference>
     <Reference Include="FirebirdSql.Data.FirebirdClient">
       <HintPath>..\FirebirdSql.Data.FirebirdClient.dll</HintPath>
     </Reference>
@@ -69,6 +66,7 @@
     <Compile Include="Configuration\Mail.cs" />
     <Compile Include="Configuration\Sql.cs" />
     <Compile Include="Configuration\Task.cs" />
+    <Compile Include="Configuration\Updates.cs" />
     <Compile Include="Mail\MailHelper.cs" />
     <Compile Include="MainService.cs">
       <SubType>Component</SubType>
@@ -434,6 +432,12 @@
       <CachedSettingsPropName>
       </CachedSettingsPropName>
     </WebReferenceUrl>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Feodosiya.Lib\Feodosiya.Lib\Feodosiya.Lib.csproj">
+      <Project>{d3adc41d-d61d-4485-8661-508fa998acc5}</Project>
+      <Name>Feodosiya.Lib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -58,10 +58,12 @@ namespace POFileManagerService {
                 };
                 ServiceHelper.NamedPipeListener.Start();
 
-                ServiceHelper.CreateMessage("Проверка обновлений для службы автообновлений...", MessageType.Debug);
-                UpdateHelper.CheckUpdatesForUpdater();
+                if (ServiceHelper.Configuration.Updates.CheckUpdates) {
+                    ServiceHelper.CreateMessage("Проверка обновлений для службы автообновлений...", MessageType.Debug);
+                    UpdateHelper.CheckUpdatesForUpdater();
 
-                UpdateHelper.CheckAndInstallConfigUpdate();
+                    UpdateHelper.CheckAndInstallConfigUpdate();
+                }
             }
             catch (Exception ex) {
                 ServiceHelper.CreateMessage("Ошибка при запуске службы:" + ex.ToString(), MessageType.Error, true);
