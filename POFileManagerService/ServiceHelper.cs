@@ -114,15 +114,29 @@ namespace POFileManagerService {
         /// <param name="writeToEventLog">Записывает сообщение в журналы Windows</param>
         /// <param name="sendMail">Отправляет сообщение по почте</param>
         public static void CreateMessage(string message, MessageType messageType, bool writeToEventLog = false, bool sendMail = false) {
+            CreateMessage(message, messageType, 0, writeToEventLog, sendMail);
+        }
+
+        /// <summary>
+        /// Создает сообщение, которое можно записать в лог, вывести в окне и отправить по почте
+        /// </summary>
+        /// <param name="message">Текст сообщения</param>
+        /// <param name="messageType">Тип сообщения</param>
+        /// <param name="debuggingLevel">Детальность отладки</param>
+        /// <param name="writeToEventLog">Записывает сообщение в журналы Windows</param>
+        /// <param name="sendMail">Отправляет сообщение по почте</param>
+        public static void CreateMessage(string message, MessageType messageType, int debuggingLevel, bool writeToEventLog = false, bool sendMail = false) {
             if (messageType == MessageType.Debug) {
                 if (Configuration != null) {
-                    if (!Configuration.DebuggingEnabled) {
+                    if (!Configuration.DebuggingEnabled || Configuration.DebuggingLevel == 0) {
                         return;
                     }
                 }
                 else {
                     return;
                 }
+
+                if (Configuration.DebuggingLevel != debuggingLevel) return;
             }
 
             try {

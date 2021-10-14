@@ -47,7 +47,7 @@ namespace POFileManagerService.Updates {
                     return;
                 }
 
-                ServiceHelper.CreateMessage("Установка обновлений для службы автообновлений...", MessageType.Debug);
+                ServiceHelper.CreateMessage("Установка обновлений для службы автообновлений...", MessageType.Debug, 1);
                 ServiceHelper.CreateMessage("Выполняется: Остановка запущенной службы " + ServiceHelper.Configuration.Updates.UpdaterServiceName + "...", MessageType.Information);
                 ServiceController sc = new ServiceController();
                 sc.ServiceName = ServiceHelper.Configuration.Updates.UpdaterServiceName;
@@ -170,11 +170,11 @@ namespace POFileManagerService.Updates {
         public static void CheckAndInstallConfigUpdate() {
             try {
                 if (CheckConfigUpdates(Path.Combine(ServiceHelper.CurrentDirectory, "settings.upd"), ServiceHelper.Configuration)) {
-                    ServiceHelper.CreateMessage("Проверка обновлений конфигурационного файла...", MessageType.Debug);
+                    ServiceHelper.CreateMessage("Проверка обновлений конфигурационного файла...", MessageType.Debug, 1);
                     // Сохраняем изменения в конфигурационный файл
                     ServiceHelper.ConfHelper.SaveConfig(ServiceHelper.Configuration, Encoding.UTF8, true);
                     ServiceHelper.Configuration = ServiceHelper.ConfHelper.LoadConfig<Configuration.Global>();
-                    ServiceHelper.CreateMessage("Выполнено обновление конфигурационного файла", MessageType.Debug);
+                    ServiceHelper.CreateMessage("Выполнено обновление конфигурационного файла", MessageType.Debug, 1);
                 }
             }
             catch (Exception ex) {

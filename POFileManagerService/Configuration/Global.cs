@@ -67,8 +67,7 @@ namespace POFileManagerService.Configuration {
         [DataMember]
         public int DebuggingLevel { get; set; }
 
-        [OnSerializing()]
-        internal void OnSerializing(StreamingContext context) {
+        internal void SetDefaultValues() {
             Ftp = (Ftp == null) ? new Ftp() {
                 Cwd = "/",
                 Host = "localhost",
@@ -101,7 +100,17 @@ namespace POFileManagerService.Configuration {
             AdditionalTime = (AdditionalTime <= 0) ? 30 : Math.Max(30, AdditionalTime);
             Tasks = (Tasks == null) ? new List<Task>() : Tasks;
             ZipCode = (ZipCode == 0) ? 298100 : ZipCode;
-            DebuggingLevel = (DebuggingLevel <= 0) ? 1 : DebuggingLevel;
+            DebuggingLevel = (DebuggingLevel < 0) ? 0 : DebuggingLevel;
+        }
+
+        [OnSerializing()]
+        internal void OnSerializing(StreamingContext context) {
+            SetDefaultValues();
+        }
+
+        [OnDeserializing()]
+        internal void OnDeserializing(StreamingContext context) {
+            SetDefaultValues();
         }
     }
 }
