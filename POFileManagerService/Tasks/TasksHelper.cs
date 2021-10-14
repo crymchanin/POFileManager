@@ -259,7 +259,7 @@ namespace POFileManagerService.Tasks {
                 }
 
                 Exception uploadEx = null;
-                FileOperationInfo[] fInfos;
+                FileOperationInfo[] fInfos = null;
                 // Проверяем наличие не отправленных архивов во временной папке и отправляем их
                 ServiceHelper.CreateMessage("Поиск ранее не отправленных архивов...", MessageType.Debug, 1);
                 List<string> zipArchives = FtpHelper.GetSkippedZipFiles(ServiceHelper.TempFtpPath, out uploadEx);
@@ -269,18 +269,20 @@ namespace POFileManagerService.Tasks {
                     foreach (string zipArchive in zipArchives) {
                         bool flag = FtpHelper.TestArchive(zipArchive);
                         if (flag) {
-                            flag = FtpHelper.UploadArchive(zipArchive, ServiceHelper.Configuration.ZipCode, out uploadEx);
-                            if (flag) {
-                                try {
-                                    fInfos = FtpHelper.GetFilesOperationInfoFromZip(zipArchive).ToArray();
+                            try {
+                                fInfos = FtpHelper.GetFilesOperationInfoFromZip(zipArchive).ToArray();
+
+                                flag = FtpHelper.UploadArchive(zipArchive, ServiceHelper.Configuration.ZipCode, out uploadEx);
+                                if (flag) {
                                     SQLHelper.WriteFileOperationInfo(fInfos);
                                 }
-                                catch(Exception ex) {
-                                    ServiceHelper.CreateMessage("Ошибка при записи информации об отправленных файлах в БД: " + ex.ToString(), MessageType.Error, true);
+                                else {
+                                    errorCount++;
                                 }
                             }
-                            else {
+                            catch (Exception ex) {
                                 errorCount++;
+                                ServiceHelper.CreateMessage($"Ошибка при получении списка файлов архива '{zipArchive}': " + ex.ToString(), MessageType.Error, true);
                             }
                         }
                         else {

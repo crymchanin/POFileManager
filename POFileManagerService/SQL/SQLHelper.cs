@@ -300,18 +300,23 @@ namespace POFileManagerService.SQL {
         /// </summary>
         /// <param name="fileInfos">Массив данных содержащий информацию об отправленных файлах</param>
         private static void CreateSqlFileOperationInfo(FileOperationInfo[] fileInfos) {
-            string insertStr = string.Empty;
+            try {
+                string insertStr = string.Empty;
 
-            foreach (FileOperationInfo fileInfo in fileInfos) {
-                insertStr += "INSERT INTO FILES " +
-                              "(FILENAME, FILETYPE, OPERATIONDATE) " +
-                              string.Format("VALUES('{0}','{1}','{2}');\r\n", fileInfo.FileName, fileInfo.TaskName,
-                              fileInfo.OperationDate.ToString("yyyy-MM-dd HH:mm:ss"));
+                foreach (FileOperationInfo fileInfo in fileInfos) {
+                    insertStr += "INSERT INTO FILES " +
+                                  "(FILENAME, FILETYPE, OPERATIONDATE) " +
+                                  string.Format("VALUES('{0}','{1}','{2}');\r\n", fileInfo.FileName, fileInfo.TaskName,
+                                  fileInfo.OperationDate.ToString("yyyy-MM-dd HH:mm:ss"));
+                }
+
+                if (insertStr.Length > 0) {
+                    string fileName = Path.Combine(ServiceHelper.TempSqlPath, string.Format("{0}.sql", DateTime.Now.ToString("dd.MM.yyyy_HH.mm.ss")));
+                    File.WriteAllText(fileName, insertStr);
+                }
             }
-
-            if (insertStr.Length > 0) {
-                string fileName = Path.Combine(ServiceHelper.TempSqlPath, string.Format("{0}.sql", DateTime.Now.ToString("dd.MM.yyyy_HH.mm.ss")));
-                File.WriteAllText(fileName, insertStr);
+            catch(Exception ex) {
+                ServiceHelper.CreateMessage("Ошибка при создании SQL файла: " + ex.ToString(), Feodosiya.Lib.Logs.MessageType.Error, true);
             }
         }
 

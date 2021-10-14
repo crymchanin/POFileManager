@@ -33,7 +33,7 @@
             // 
             // MainService
             // 
-            this.ServiceName = "Service1";
+            this.ServiceName = "POFileManagerUpdater";
             ((System.ComponentModel.ISupportInitialize)(this.MainEventLog)).EndInit();
 
         }
