@@ -17,8 +17,8 @@ namespace POFileManagerClient.Configuration {
         [DataMember]
         public bool DebuggingEnabled { get; set; }
 
-        [OnSerializing()]
-        internal void OnSerializing(StreamingContext context) {
+        [OnDeserializing()]
+        internal void OnDeserializing(StreamingContext context) {
             Pinger = (Pinger == null) ? new Pinger() {
                 HostIP = "8.8.8.8",
                 PingTimeout = 1,

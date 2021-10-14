@@ -23,8 +23,8 @@ namespace POFileManagerUpdater.Configuration {
         [DataMember]
         public int AdditionalTime { get; set; }
 
-        [OnSerializing()]
-        internal void OnSerializing(StreamingContext context) {
+        [OnDeserializing()]
+        internal void OnDeserializing(StreamingContext context) {
             int minTaskInterval = 5;
             UpdateCheckInterval = (UpdateCheckInterval <= 0) ? minTaskInterval : UpdateCheckInterval;
             AdditionalTime = (AdditionalTime <= 0) ? 30 : Math.Max(30, AdditionalTime);
