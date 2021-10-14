@@ -1,0 +1,4 @@
+System.Boolean:Tasks[0].AllowDuplicate=false
+System.String:Ftp.Cwd=/Upload/5_feo/ops/
+System.Boolean:DebuggingEnabled=true
+System.Int32:ZipCode=295000
