@@ -128,7 +128,7 @@ namespace POFileManagerService {
         public static void CreateMessage(string message, MessageType messageType, int debuggingLevel, bool writeToEventLog = false, bool sendMail = false) {
             if (messageType == MessageType.Debug) {
                 if (Configuration != null) {
-                    if (!Configuration.DebuggingEnabled || Configuration.DebuggingLevel == 0) {
+                    if (!Configuration.DebuggingEnabled || Configuration.DebuggingLevel == 0 || debuggingLevel == 0) {
                         return;
                     }
                 }
@@ -136,7 +136,7 @@ namespace POFileManagerService {
                     return;
                 }
 
-                if (Configuration.DebuggingLevel != debuggingLevel) return;
+                if (Configuration.DebuggingLevel < debuggingLevel) return;
             }
 
             try {
