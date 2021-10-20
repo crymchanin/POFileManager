@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Configuration\Ftp.cs" />
     <Compile Include="Configuration\Global.cs" />
+    <Compile Include="Configuration\Logs.cs" />
     <Compile Include="Configuration\Mail.cs" />
     <Compile Include="Configuration\Sql.cs" />
     <Compile Include="Configuration\Task.cs" />

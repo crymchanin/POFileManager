@@ -3,6 +3,7 @@ using Feodosiya.Lib.Conf;
 using Feodosiya.Lib.IO;
 using Feodosiya.Lib.IO.Pipes;
 using Feodosiya.Lib.Logs;
+using Feodosiya.Lib.Math;
 using Feodosiya.Lib.Threading;
 using POFileManagerClient.Configuration;
 using System;
@@ -10,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 #endregion
 
@@ -49,6 +51,11 @@ namespace POFileManagerClient {
         public static Log Log { get; set; }
 
         /// <summary>
+        /// Папка с логами программы
+        /// </summary>
+        public static string LogsPath { get; set; }
+
+        /// <summary>
         /// Конфигурационный файл
         /// </summary>
         public static ConfHelper ConfHelper { get; set; }
@@ -61,7 +68,7 @@ namespace POFileManagerClient {
 
         #region Вспомогательные методы
         /// <summary>
-        /// Создает сообщение, которое можно записать в лог, вывести в окне и отправить по почте
+        /// Создает сообщение, которое можно записать в лог, вывести в окне
         /// </summary>
         /// <param name="message">Текст сообщения</param>
         /// <param name="messageType">Тип сообщения</param>
@@ -127,7 +134,11 @@ namespace POFileManagerClient {
                 CurrentDirectory = IOHelper.GetCurrentDir(execAssembly);
                 Version = fileVersionInfo.FileVersion;
 
-                Log = new Log(Path.Combine(CurrentDirectory, ProductName + ".log")) { InsertDate = true, AutoCompress = true };
+                LogsPath = Path.Combine(CurrentDirectory, "Logs");
+                if (!Directory.Exists(LogsPath)) {
+                    Directory.CreateDirectory(LogsPath);
+                }
+                Log = new Log(Path.Combine(LogsPath, ProductName + ".log")) { InsertDate = true, AutoCompress = true };
                 Log.ExceptionThrownEvent += (e) => MessageBox.Show(e.ToString(), "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 return true;
@@ -157,6 +168,8 @@ namespace POFileManagerClient {
                     CreateMessage("Ошибка при загрузке конфигурации:\r\n" + ConfHelper.LastError.ToString(), MessageType.Error, true);
                     return false;
                 }
+
+                Log.MaxLogLength = Configuration.Logs.MaxLogLength;
 
                 return true;
             }
@@ -200,6 +213,31 @@ namespace POFileManagerClient {
                 catch (Exception ex) {
                     CreateMessage("Ошибка при добавление программы в автозагрузку:\r\n" + ex.ToString(), MessageType.Error);
                 }
+
+                #region Удаление сжатых логов по сроку давности
+                try {
+                    if (Configuration.Logs.CompressedLogsLifetime > -1) {
+                        foreach (string file in Directory.GetFiles(LogsPath, "*.gz", SearchOption.TopDirectoryOnly)) {
+                            if (!Regex.IsMatch(Path.GetFileName(file), $"^{ProductName}" + @".log_\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.gz$")) {
+                                continue;
+                            }
+
+                            DateTime date = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
+                            date = date.AddDays(Configuration.Logs.CompressedLogsLifetime.ToNegative());
+                            FileInfo info = new FileInfo(file);
+                            if (info.LastWriteTime > date) {
+                                continue;
+                            }
+
+                            File.Delete(file);
+                            CreateMessage(string.Format("Архив логов {0} был удален из за сроков его давности: {1} дней", file, Configuration.Logs.CompressedLogsLifetime), MessageType.Debug);
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    CreateMessage("Ошибка при удалении архивов с логами: " + ex.ToString(), MessageType.Error);
+                }
+                #endregion
 
                 return true;
             }

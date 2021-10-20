@@ -3,6 +3,7 @@ using Feodosiya.Lib.Conf;
 using Feodosiya.Lib.IO;
 using Feodosiya.Lib.IO.Pipes;
 using Feodosiya.Lib.Logs;
+using Feodosiya.Lib.Math;
 using Feodosiya.Lib.Security;
 using POFileManagerService.Configuration;
 using POFileManagerService.Mail;
@@ -14,6 +15,7 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 #endregion
 
@@ -41,6 +43,11 @@ namespace POFileManagerService {
         /// Лог файл программы
         /// </summary>
         public static Log Log { get; set; }
+
+        /// <summary>
+        /// Папка с логами программы
+        /// </summary>
+        public static string LogsPath { get; set; }
 
         /// <summary>
         /// Конфигурационный файл
@@ -208,7 +215,11 @@ namespace POFileManagerService {
                 CurrentDirectory = IOHelper.GetCurrentDir(execAssembly);
                 Version = fileVersionInfo.FileVersion;
 
-                Log = new Log(Path.Combine(CurrentDirectory, ProductName + ".log")) { InsertDate = true, AutoCompress = true };
+                LogsPath = Path.Combine(CurrentDirectory, "Logs");
+                if (!Directory.Exists(LogsPath)) {
+                    Directory.CreateDirectory(LogsPath);
+                }
+                Log = new Log(Path.Combine(LogsPath, ProductName + ".log")) { InsertDate = true, AutoCompress = true };
                 Log.ExceptionThrownEvent += (e) => CreateMessage("Ошибка:\r\n" + e.ToString(), MessageType.Error, true);
 
                 return true;
@@ -238,6 +249,8 @@ namespace POFileManagerService {
                     CreateMessage("Ошибка при загрузке конфигурации:\r\n" + ConfHelper.LastError.ToString(), MessageType.Error, true);
                     return false;
                 }
+
+                Log.MaxLogLength = Configuration.Logs.MaxLogLength;
 
                 return true;
             }
@@ -294,6 +307,31 @@ namespace POFileManagerService {
                 TempSqlPath = Path.Combine(TempPath, "Sql");
                 if (!Directory.Exists(TempSqlPath)) {
                     Directory.CreateDirectory(TempSqlPath);
+                }
+                #endregion
+
+                #region Удаление сжатых логов по сроку давности
+                try {
+                    if (Configuration.Logs.CompressedLogsLifetime > -1) {
+                        foreach (string file in Directory.GetFiles(LogsPath, "*.gz", SearchOption.TopDirectoryOnly)) {
+                            if (!Regex.IsMatch(Path.GetFileName(file), $"^{ProductName}" + @".log_\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.gz$")) {
+                                continue;
+                            }
+
+                            DateTime date = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
+                            date = date.AddDays(Configuration.Logs.CompressedLogsLifetime.ToNegative());
+                            FileInfo info = new FileInfo(file);
+                            if (info.LastWriteTime > date) {
+                                continue;
+                            }
+
+                            File.Delete(file);
+                            CreateMessage(string.Format("Архив логов {0} был удален из за сроков его давности: {1} дней", file, Configuration.Logs.CompressedLogsLifetime), MessageType.Debug, 1);
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    CreateMessage("Ошибка при удалении архивов с логами: " + ex.ToString(), MessageType.Error);
                 }
                 #endregion
 

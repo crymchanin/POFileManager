@@ -67,6 +67,12 @@ namespace POFileManagerService.Configuration {
         [DataMember]
         public int DebuggingLevel { get; set; }
 
+        /// <summary>
+        /// Параметры для системы логирования    
+        /// </summary>
+        [DataMember]
+        public Logs Logs { get; set; }
+
         internal void SetDefaultValues() {
             Ftp = (Ftp == null) ? new Ftp() {
                 Cwd = "/",
@@ -101,6 +107,10 @@ namespace POFileManagerService.Configuration {
             Tasks = (Tasks == null) ? new List<Task>() : Tasks;
             ZipCode = (ZipCode == 0) ? 298100 : ZipCode;
             DebuggingLevel = (DebuggingLevel < 0) ? 0 : DebuggingLevel;
+            Logs = (Logs == null) ? new Logs {
+                MaxLogLength = 1024 * 500,
+                CompressedLogsLifetime = -1
+            } : Logs;
         }
 
         [OnSerializing()]

@@ -17,6 +17,12 @@ namespace POFileManagerClient.Configuration {
         [DataMember]
         public bool DebuggingEnabled { get; set; }
 
+        /// <summary>
+        /// Параметры для системы логирования    
+        /// </summary>
+        [DataMember]
+        public Logs Logs { get; set; }
+
         [OnDeserializing()]
         internal void OnDeserializing(StreamingContext context) {
             Pinger = (Pinger == null) ? new Pinger() {
@@ -24,6 +30,10 @@ namespace POFileManagerClient.Configuration {
                 PingTimeout = 1,
                 TimerInterval = 5
             } : Pinger;
+            Logs = (Logs == null) ? new Logs {
+                MaxLogLength = 1024 * 500,
+                CompressedLogsLifetime = -1
+            } : Logs;
         }
     }
 }

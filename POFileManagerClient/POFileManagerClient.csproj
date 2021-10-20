@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="AppHelper.cs" />
     <Compile Include="Configuration\Global.cs" />
+    <Compile Include="Configuration\Logs.cs" />
     <Compile Include="Configuration\Pinger.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
