@@ -1,12 +1,13 @@
 ﻿#region Пространства имен
+using Feodosiya.Lib.Conf;
 using FluentFTP;
-using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using POFileManagerService.SQL;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 #endregion
 
@@ -22,31 +23,27 @@ namespace POFileManagerService.Net {
         #endregion
 
 
-        private static void CompressFolder(string path, ZipOutputStream zipStream, int folderOffset) {
+        private static void CompressFolder(string path, ZipFile zip, int folderOffset, List<FileOperationInfo> allFiles) {
 
-            string[] files = Directory.GetFiles(path);
+            foreach (string filePath in Directory.GetFiles(path)) {
 
-            foreach (string filename in files) {
+                FileInfo fileInfo = new FileInfo(filePath);
 
-                FileInfo fileInfo = new FileInfo(filename);
-
-                string entryName = filename.Substring(folderOffset);
+                string entryName = filePath.Substring(folderOffset);
                 entryName = ZipEntry.CleanName(entryName);
-                ZipEntry newEntry = new ZipEntry(entryName);
-                newEntry.DateTime = fileInfo.LastWriteTime;
-                newEntry.Size = fileInfo.Length;
+                zip.BeginUpdate();
+                zip.Add(filePath, entryName);
+                zip.CommitUpdate();
 
-                zipStream.PutNextEntry(newEntry);
-
-                byte[] buffer = new byte[4096];
-                using (FileStream streamReader = File.OpenRead(filename)) {
-                    StreamUtils.Copy(streamReader, zipStream, buffer);
-                }
-                zipStream.CloseEntry();
+                FileOperationInfo fInfo = new FileOperationInfo();
+                fInfo.FileName = Path.GetFileName(filePath);
+                fInfo.TaskName = Path.GetFileName(Path.GetDirectoryName(filePath));
+                fInfo.OperationDate = DateTime.Now;
+                File.Delete(filePath);
+                allFiles.Add(fInfo);
             }
-            string[] folders = Directory.GetDirectories(path);
-            foreach (string folder in folders) {
-                CompressFolder(folder, zipStream, folderOffset);
+            foreach (string folder in Directory.GetDirectories(path)) {
+                CompressFolder(folder, zip, folderOffset, allFiles);
             }
         }
 
@@ -56,42 +53,35 @@ namespace POFileManagerService.Net {
         /// <param name="srcPath">Исходная папка</param>
         /// <param name="zipName">Имя для создаваемого архива</param>
         public static FileOperationInfo[] PackFiles(string srcPath, string zipName) {
-            string[] files = Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories);
-            int length = files.Length;
-            if (length == 0) {
+            if (Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories).Length == 0) {
                 return null;
             }
-            FileOperationInfo[] fInfos = new FileOperationInfo[length];
 
-            FileStream fsOut = File.Create(zipName);
-            ZipOutputStream zipStream = new ZipOutputStream(fsOut);
-            zipStream.SetLevel(3);
-
+            List<FileOperationInfo> fInfos = new List<FileOperationInfo>();
             int folderOffset = srcPath.Length + (srcPath.EndsWith("\\") ? 0 : 1);
-
-            CompressFolder(srcPath, zipStream, folderOffset);
-
-            zipStream.IsStreamOwner = true;
-            zipStream.Close();
-
-            int index = 0;
-            foreach (string file in files) {
-                fInfos[index] = new FileOperationInfo();
-                fInfos[index].FileName = Path.GetFileName(file);
-                fInfos[index].TaskName = Path.GetFileName(Path.GetDirectoryName(file));
-                fInfos[index].OperationDate = DateTime.Now;
-                File.Delete(file);
-
-                index++;
+            using (ZipFile zip = ZipFile.Create(zipName)) {
+                CompressFolder(srcPath, zip, folderOffset, fInfos);
             }
 
-            return fInfos;
+            return fInfos.ToArray();
+        }
+
+        public static void AddPackageMeta(string zipPath, PackageMeta packageMeta) {
+            string metaName = "package.meta";
+            ConfHelper confHelper = new ConfHelper(metaName);
+            string json = confHelper.GetConfigJson(packageMeta, Encoding.UTF8, true);
+
+            using (ZipFile zip = new ZipFile(zipPath)) {
+                zip.BeginUpdate();
+                zip.Add(new ZipDataSource(Encoding.UTF8.GetBytes(json)), metaName);
+                zip.CommitUpdate();
+            }
         }
 
         /// <summary>
         /// Возвращает массив данных содержащих информацию о файлах на отправку 
         /// </summary>
-        /// <param name="zipPath">Путь к zip орхиву с файлами на отправку</param>
+        /// <param name="zipPath">Путь к zip архиву с файлами на отправку</param>
         /// <returns></returns>
         public static IEnumerable<FileOperationInfo> GetFilesOperationInfoFromZip(string zipPath) {
             using (ZipInputStream zipStream = new ZipInputStream(File.OpenRead(zipPath))) {
@@ -149,7 +139,7 @@ namespace POFileManagerService.Net {
         /// <param name="exception">Содержит информацию о произошедшей ошибке во время поиска не отправленных архивов. При успешном выполнении загрузки имеет значение null</param>
         /// <returns></returns>
         public static List<string> GetSkippedZipFiles(string srcPath, out Exception exception) {
-            Regex regEx = new Regex(@"^\d{6}_\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}$");
+            Regex regEx = new Regex(@"^[0-9A-f]{8}-[0-9A-f]{4}-[0-9A-f]{4}-[0-9A-f]{4}-[0-9A-f]{12}$"); // Пример: fb5cff64-7c28-46ca-b4ec-33126ca3c746
             List<string> result = new List<string>();
             try {
                 result = Directory.EnumerateFiles(srcPath, "*.zip", SearchOption.TopDirectoryOnly)

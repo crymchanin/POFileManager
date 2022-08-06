@@ -101,6 +101,11 @@ namespace POFileManagerService {
         public static bool IsInitialized { get; set; } = false;
 
         /// <summary>
+        /// NetBIOS данного локального компьютера
+        /// </summary>
+        public static string MachineName { get; set; } = Environment.MachineName;
+
+        /// <summary>
         /// Минимальный интервал основного таймера (в минутах)
         /// </summary>
         public const int MinimumMainTimerInterval = 5 * 60 * 1000;
@@ -113,6 +118,42 @@ namespace POFileManagerService {
 
 
         #region Вспомогательные методы
+
+        /// <summary>
+        /// Формирует имя для архива
+        /// </summary>
+        /// <param name="rootDir">Корневая папка для архива</param>
+        /// <param name="tryCount">Количество повторных попыток, если файл с генерируемым именем уже существует</param>
+        /// <returns></returns>
+        public static PackageName GeneratePackageName(string rootDir, int tryCount = 5) {
+            string id;
+            string name;
+            string path;
+            for (int index = 1; index < tryCount; index++) {
+                id = Feodosiya.Lib.App.AppHelper.GenerateGuid("D");
+                name = id + ".zip";
+                path = Path.Combine(rootDir, name);
+                PackageName pn = new PackageName() {
+                    Id = id,
+                    Name = name,
+                    Path = path
+                };
+                if (!File.Exists(pn.Path)) {
+                    return pn;
+                }
+            }
+
+            // Ну если все попытки неудачные, что будет нонсенс, пробуем еще раз - последний.
+            id = Feodosiya.Lib.App.AppHelper.GenerateGuid("D");
+            name = id + ".zip";
+            path = Path.Combine(rootDir, name);
+            return new PackageName() {
+                Id = id,
+                Name = name,
+                Path = path
+            };
+        }
+
         /// <summary>
         /// Создает сообщение, которое можно записать в лог, вывести в окне и отправить по почте
         /// </summary>
@@ -121,7 +162,7 @@ namespace POFileManagerService {
         /// <param name="writeToEventLog">Записывает сообщение в журналы Windows</param>
         /// <param name="sendMail">Отправляет сообщение по почте</param>
         public static void CreateMessage(string message, MessageType messageType, bool writeToEventLog = false, bool sendMail = false) {
-            CreateMessage(message, messageType, 0, writeToEventLog, sendMail);
+            CreateMessage(message, messageType, (messageType == MessageType.Debug) ? 1 : 0, writeToEventLog, sendMail);
         }
 
         /// <summary>

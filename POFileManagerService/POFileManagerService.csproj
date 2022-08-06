@@ -39,8 +39,8 @@
     <Reference Include="FluentFTP, Version=32.3.1.0, Culture=neutral, PublicKeyToken=f4af092b1d8df44f, processorArchitecture=MSIL">
       <HintPath>..\packages\FluentFTP.32.3.1\lib\net45\FluentFTP.dll</HintPath>
     </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib">
-      <HintPath>..\ICSharpCode.SharpZipLib.dll</HintPath>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.3.3.11, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.1.3.3\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
@@ -76,6 +76,9 @@
       <DependentUpon>MainService.cs</DependentUpon>
     </Compile>
     <Compile Include="Net\FtpHelper.cs" />
+    <Compile Include="Net\ZipDataSource.cs" />
+    <Compile Include="PackageMeta.cs" />
+    <Compile Include="PackageName.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
@@ -98,7 +101,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Web References\ru.crimeanpost.cas\AddDelegateResponseMessageType.datasource">
       <DependentUpon>Reference.map</DependentUpon>
     </None>

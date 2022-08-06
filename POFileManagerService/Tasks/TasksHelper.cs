@@ -305,9 +305,21 @@ namespace POFileManagerService.Tasks {
 
                 // Запаковываем файлы в архив
                 ServiceHelper.CreateMessage("Запаковка файлов в архив...", MessageType.Debug, 1);
-                string zipName = Path.Combine(ServiceHelper.TempFtpPath, string.Format("{0}_{1}.zip", ServiceHelper.Configuration.ZipCode, DateTime.Now.ToString("dd_MM_yyyy_HH_mm_ss")));
+                PackageName pn = ServiceHelper.GeneratePackageName(ServiceHelper.TempFtpPath);
+                string zipName = pn.Path;
                 fInfos = FtpHelper.PackFiles(ServiceHelper.TempTasksPath, zipName);
                 if (fInfos != null) {
+                    PackageMeta pkgMeta = new PackageMeta() {
+                        CreateDate = DateTime.Now,
+                        FilesCount = fInfos.Length,
+                        FilesList = fInfos.Select(f => $"{f.TaskName}\\{f.FileName}").ToList(),
+                        MachineName = ServiceHelper.MachineName,
+                        UserName = Feodosiya.Lib.OS.SystemHelper.CurrentUserName(),
+                        Name = pn.Id,
+                        ZipCode = ServiceHelper.Configuration.ZipCode
+                    };
+                    FtpHelper.AddPackageMeta(zipName, pkgMeta);
+
                     if (ServiceHelper.Configuration.DebuggingLevel == 2) {
                         foreach (FileOperationInfo fInfo in fInfos) {
                             ServiceHelper.CreateMessage(string.Format("Упакован файл {0} из задачи {1} в {2}", fInfo.FileName, fInfo.TaskName, fInfo.OperationDate),
