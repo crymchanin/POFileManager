@@ -214,6 +214,8 @@ namespace POFileManagerService {
                 ProductName = fileVersionInfo.ProductName;
                 CurrentDirectory = IOHelper.GetCurrentDir(execAssembly);
                 Version = fileVersionInfo.FileVersion;
+                StringHelper.Encoding = Encoding.UTF8;
+                StringHelper.PassPhrase = "22644ccf-87ac-426a-b9dc-1f1207bdbfcc";
 
                 LogsPath = Path.Combine(CurrentDirectory, "Logs");
                 if (!Directory.Exists(LogsPath)) {
