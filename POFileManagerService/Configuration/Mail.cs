@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using Feodosiya.Lib.Security;
+using System.Runtime.Serialization;
 
 
 namespace POFileManagerService.Configuration {
@@ -42,5 +43,15 @@ namespace POFileManagerService.Configuration {
         /// </summary>
         [DataMember]
         public string CertificateName { get; set; }
+
+        [OnDeserialized]
+        internal void OnDeserialized(StreamingContext context) {
+            if (Password != null && Password.Trim() != "") {
+                try {
+                    Password = Password.GetDecryptedString();
+                }
+                catch { }
+            }
+        }
     }
 }
